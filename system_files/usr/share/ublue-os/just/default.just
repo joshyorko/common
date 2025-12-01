@@ -63,7 +63,6 @@ toggle-user-motd:
 # Check for local overrides
 check-local-overrides:
     #!/usr/bin/bash
-    set -x
     RESET="\x1b[0m"
     if [ "${NO_COLOR}" == 1 ]; then
         BLUE_COLOR=""

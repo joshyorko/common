@@ -26,17 +26,3 @@ declare -r nounderline=$'\033[24m'
 declare -r unblink=$'\033[25m'
 declare -r uninvert=$'\033[27m'
 declare -r unhide=$'\033[28m'
-
-########
-### Special text formating
-########
-## Function to generate a clickable link, you can call this using
-# url=$(Urllink "https://ublue.it" "Visit the ublue website")
-# echo "${url}"
-function Urllink (){
-    URL=$1
-    TEXT=$2
-
-    # Generate a clickable hyperlink
-    printf "\033]8;;%s\033\\%s\033]8;;\033\\" "$URL" "$TEXT${n}"
-}

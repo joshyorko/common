@@ -5,6 +5,7 @@
 [group('System')]
 bluefin-cli:
     @ublue-bling
+    brew bundle --file=/usr/share/ublue-os/homebrew/cli.Brewfile
 
 # alias for toggle-devmode
 devmode:

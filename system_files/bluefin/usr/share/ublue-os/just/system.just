@@ -122,7 +122,8 @@ alias rollback-helper := rebase-helper
 # Rebase assistant
 [group('System')]
 rebase-helper:
-    if grep -i centos "/etc/os-release" ; then
+    #!/usr/bin/env bash
+    if grep -q centos "/etc/os-release" ; then
         echo "The rebase helper is currently disabled for Bluefin LTS"
         exit 1
     fi

@@ -3,14 +3,14 @@
 # alias for install-jetbrains-toolbox
 [group('Apps')]
 jetbrains-toolbox:
-  @ujust install-jetbrains-toolbox
+    @ujust install-jetbrains-toolbox
 
 # Install JetBrains Toolbox | https://www.jetbrains.com/toolbox-app/
 [group('Apps')]
 install-jetbrains-toolbox:
-  #!/usr/bin/env bash
-  brew tap ublue-os/homebrew-tap
-  brew install --cask jetbrains-toolbox-linux
+    #!/usr/bin/env bash
+    brew tap ublue-os/homebrew-tap
+    brew install --cask jetbrains-toolbox-linux
 
 # Install OpenTabletDriver, an open source, cross-platform, user-mode tablet driver
 [group('Apps')]
@@ -68,4 +68,3 @@ cncf:
         fi
     fi
     bbrew -f "/usr/share/ublue-os/homebrew/cncf.Brewfile"
-

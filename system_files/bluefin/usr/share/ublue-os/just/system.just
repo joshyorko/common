@@ -128,8 +128,3 @@ rebase-helper:
         exit 1
     fi
     /usr/bin/ublue-rollback-helper
-
-# TPM2 auto-unlock toggle
-[group('System')]
-toggle-tpm2:
-    @/usr/bin/luks-tpm2-autounlock

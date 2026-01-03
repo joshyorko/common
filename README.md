@@ -13,9 +13,14 @@ This layer contains two main configuration directories:
 
 ### `/usr/share/ublue-os/` - User-Space Configuration
 - Firefox defaults - Pre-configured Firefox settings
-- Flatpak overrides - Application-specific Flatpak configurations
+- **Flatpak customization** - Multiple levels of flatpak configuration:
+  - System-level flatpak overrides in `flatpak-overrides/` (e.g., Bazaar)
+  - User-level flatpak overrides in `/etc/skel/.local/share/flatpak/overrides/` (e.g., VSCode, Chrome)
+  - System flatpak Brewfiles for default application installation
 - Homebrew Brewfiles - Curated application bundles installable via `bbrew`
   - `full-desktop.Brewfile` - Full collection of GNOME Circle and community flatpak applications
+  - `system-flatpaks.Brewfile` - Default system-wide flatpaks for all Bluefin variants
+  - `system-dx-flatpaks.Brewfile` - Additional flatpaks for DX (Developer Experience) mode
   - Other specialized Brewfiles for fonts, CLI tools, AI tools, etc.
 - Just recipes - Additional command recipes for system management
 - MOTD templates - Message of the day and tips
@@ -52,10 +57,41 @@ FROM ghcr.io/projectbluefin/common:latest AS bluefin-common
 COPY --from=bluefin-common /system_files/usr /usr
 ```
 
+## Flatpak Customization
+
+Bluefin-common provides a comprehensive flatpak customization system with multiple layers:
+
+### System Flatpak Brewfiles
+
+Default flatpaks are now managed via Homebrew Brewfiles, allowing for declarative system-wide installation:
+
+- **`system-flatpaks.Brewfile`** - Core flatpaks installed on all Bluefin variants (37 applications including Firefox, Thunderbird, GNOME Circle apps, and utilities)
+- **`system-dx-flatpaks.Brewfile`** - Additional development-focused flatpaks for DX mode (6 applications including Podman Desktop, Builder, and DevToolbox)
+
+These can be installed using:
+```bash
+ujust install-system-flatpaks
+```
+
+### Flatpak Overrides
+
+Two types of flatpak overrides are provided to grant additional permissions to specific applications:
+
+**System-level overrides** (`/usr/share/ublue-os/flatpak-overrides/`):
+- `io.github.kolunmi.Bazaar` - Grants access to `host-etc` for system configuration
+
+**User-level overrides** (`/etc/skel/.local/share/flatpak/overrides/`):
+- `com.visualstudio.code` - Enables Wayland support and Podman socket access
+- `com.google.Chrome` - Grants access to local applications and icons directories
+
+These overrides are automatically applied to new user accounts through the `/etc/skel` template.
+
 ## Brewfiles
 
 The `/usr/share/ublue-os/homebrew/` directory contains curated application bundles installable via [bbrew](https://github.com/Valkyrie00/homebrew-bbrew):
 
+- **`system-flatpaks.Brewfile`** - Default system-wide flatpaks for all Bluefin variants
+- **`system-dx-flatpaks.Brewfile`** - Additional flatpaks for DX (Developer Experience) mode
 - **`full-desktop.Brewfile`** - Comprehensive collection of GNOME Circle and community flatpak applications for a full desktop experience
 - **`fonts.Brewfile`** - Additional monospace fonts for development
 - **`cli.Brewfile`** - CLI tools and utilities

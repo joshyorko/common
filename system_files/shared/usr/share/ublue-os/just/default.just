@@ -153,8 +153,8 @@ device-info:
 # Measure Idle Power Draw
 check-idle-power-draw:
     #!/usr/bin/bash
-    if grep -qi centos "/etc/os-release" ; then
-        echo "Powerstat is not available yet."
+    if ! command -v powerstat ; then
+        echo "Powerstat is not available"
         exit 1
     fi
     sudo powerstat -a -r
@@ -163,8 +163,7 @@ check-idle-power-draw:
 [group('System')]
 benchmark:
     #!/usr/bin/env bash
-    source /usr/lib/ujust/ujust.sh
-    if ! type -P "stress-ng" &>/dev/null ; then
+    if ! command -v "stress-ng" ; then
         if gum confirm "Stress does not seem to be on your path, do you wish to install it?" ; then
             set -eu
             brew install stress-ng
@@ -175,7 +174,7 @@ benchmark:
         fi
     fi
 
-    echo 'Running a 1 minute benchmark ...'
+    echo "Running a 1 minute benchmark ..."
     trap popd EXIT
-    pushd $(mktemp -d)
+    pushd "$(mktemp -d)"
     stress-ng --matrix 0 -t 1m --times

@@ -32,13 +32,20 @@ troubleshoot:
     fi
 
     # ─────────────────────────────────────────────────────────────────────────
-    # Setup Goose config if missing
+    # Setup Goose config and skills if missing
     # ─────────────────────────────────────────────────────────────────────────
 
     if [[ ! -f "${HOME}/.config/goose/bluespeed.yaml" ]]; then
         echo "Setting up Goose configuration..."
         mkdir -p "${HOME}/.config/goose"
         sed "s|__HOME__|${HOME}|g" /usr/share/ublue-os/goose/bluespeed.yaml > "${HOME}/.config/goose/bluespeed.yaml"
+    fi
+
+    # Copy Bluefin knowledge skill to Goose skills directory
+    if [[ ! -d "${HOME}/.config/goose/skills/bluefin-knowledge" ]]; then
+        echo "Installing Bluefin knowledge skill..."
+        mkdir -p "${HOME}/.config/goose/skills"
+        cp -r /usr/share/ublue-os/goose/skills/bluefin-knowledge "${HOME}/.config/goose/skills/"
     fi
 
     echo ""
@@ -70,7 +77,7 @@ troubleshoot:
         # Build model selection menu
         MODEL_OPTIONS=()
 
-        # First: Show already downloaded models (if any)
+        # Show already downloaded models if any exist
         echo "Checking downloaded models..."
         DOWNLOADED=$(ramalama list 2>/dev/null | tail -n +2 | awk '{print $1}' | grep -v "^$" || true)
         if [[ -n "${DOWNLOADED}" ]]; then
@@ -81,27 +88,25 @@ troubleshoot:
             MODEL_OPTIONS+=("")
         fi
 
-        # Second: Recommended models (with tool calling support and sufficient context)
-        MODEL_OPTIONS+=("─── Recommended (Tool Calling + 128K Context) ───")
-        MODEL_OPTIONS+=("ollama://phi4-mini (3.8B - Fast, tool calling)")
-        MODEL_OPTIONS+=("ollama://llama3.2 (3B - Fast)")
-        MODEL_OPTIONS+=("ollama://qwen2.5 (7B - Balanced)")
-        MODEL_OPTIONS+=("ollama://granite3.1-dense (8B - IBM)")
-        MODEL_OPTIONS+=("ollama://phi4 (14B - Best for tools)")
-        MODEL_OPTIONS+=("ollama://mistral (7B - Classic)")
-
-        # Third: Other available models
-        MODEL_OPTIONS+=("")
-        MODEL_OPTIONS+=("─── Other Models ───")
-        MODEL_OPTIONS+=("ollama://gemma3:4b (4B - Google)")
-        MODEL_OPTIONS+=("ollama://deepseek-r1 (7B - Reasoning)")
-        MODEL_OPTIONS+=("ollama://codellama (7B - Code)")
-        MODEL_OPTIONS+=("ollama://tinyllama (1B - Tiny, 2K context)")
-
-        # Fourth: Custom model option
-        MODEL_OPTIONS+=("")
-        MODEL_OPTIONS+=("Enter custom model...")
-        MODEL_OPTIONS+=("Cancel")
+        # Add model options with consistent formatting
+        MODEL_OPTIONS+=(
+            "─── Recommended (Tool Calling + 128K Context) ───"
+            "ollama://phi4-mini (3.8B - Fast, tool calling)"
+            "ollama://llama3.2 (3B - Fast)"
+            "ollama://qwen2.5 (7B - Balanced)"
+            "ollama://granite3.1-dense (8B - IBM)"
+            "ollama://phi4 (14B - Best for tools)"
+            "ollama://mistral (7B - Classic)"
+            ""
+            "─── Other Models ───"
+            "ollama://gemma3:4b (4B - Google)"
+            "ollama://deepseek-r1 (7B - Reasoning)"
+            "ollama://codellama (7B - Code)"
+            "ollama://tinyllama (1B - Tiny, 2K context)"
+            ""
+            "Enter custom model..."
+            "Cancel"
+        )
 
         # Let user choose model
         echo ""
@@ -135,8 +140,9 @@ troubleshoot:
             ramalama pull "${SELECTED_MODEL}"
         fi
 
-        # Check if server is already running (check health endpoint)
-        if curl -s --max-time 2 http://127.0.0.1:{{ RAMALAMA_PORT }}/health &>/dev/null; then
+        # Check if server is already running
+        SERVER_URL="http://127.0.0.1:{{ RAMALAMA_PORT }}"
+        if curl -s --max-time 2 "${SERVER_URL}/health" &>/dev/null; then
             echo ""
             echo "Local LLM server already running on port {{ RAMALAMA_PORT }}"
             echo "Note: Using existing server. Run 'ujust stop-troubleshoot' first to use different model."
@@ -147,22 +153,20 @@ troubleshoot:
             echo ""
             echo "Starting local LLM server with tool calling support..."
 
-            # Start server in detached mode with named container
-            # --jinja enables tool calling support required for MCP
-            # --ctx-size 8192 provides sufficient context for MCP tool responses
+            # Start server with tool calling and extended context
             ramalama serve -d -p {{ RAMALAMA_PORT }} -n bluespeed \
                 --runtime-args="--jinja" \
                 --ctx-size 8192 \
                 "${SELECTED_MODEL}"
 
-            # Wait for server to be ready (up to 120 seconds for larger models)
+            # Wait for server to be ready
             printf "Waiting for server"
             for i in {1..120}; do
-                if curl -s --max-time 2 http://127.0.0.1:{{ RAMALAMA_PORT }}/health &>/dev/null; then
+                if curl -s --max-time 2 "${SERVER_URL}/health" &>/dev/null; then
                     echo " ready!"
                     break
                 fi
-                # Check if container is still running
+                # Check if container exited unexpectedly
                 if ! ramalama containers 2>/dev/null | grep -q "bluespeed"; then
                     echo ""
                     echo "Error: Server container exited. Checking logs..."
@@ -173,8 +177,8 @@ troubleshoot:
                 sleep 1
             done
 
-            # Final check
-            if ! curl -s --max-time 2 http://127.0.0.1:{{ RAMALAMA_PORT }}/health &>/dev/null; then
+            # Verify server started successfully
+            if ! curl -s --max-time 2 "${SERVER_URL}/health" &>/dev/null; then
                 echo ""
                 echo "Error: Server failed to start within 120 seconds."
                 echo "Container logs:"
@@ -183,15 +187,11 @@ troubleshoot:
             fi
         fi
 
-        # Set environment for Goose (RamaLama uses Ollama-compatible API)
-        export OLLAMA_HOST="http://127.0.0.1:{{ RAMALAMA_PORT }}"
-        # Override any existing Goose config to use local LLM
+        # Configure environment for local LLM
+        export OLLAMA_HOST="${SERVER_URL}"
         export GOOSE_PROVIDER="ollama"
-        # Extract model name from selection (e.g., "ollama://tinyllama" -> "tinyllama")
-        MODEL_NAME="${SELECTED_MODEL#ollama://}"
-        MODEL_NAME="${MODEL_NAME#huggingface://}"
-        MODEL_NAME="${MODEL_NAME#oci://}"
-        export GOOSE_MODEL="${MODEL_NAME}"
+        # Extract model name (remove any protocol prefix)
+        export GOOSE_MODEL="${SELECTED_MODEL#*://}"
         echo ""
         echo "Using local LLM at ${OLLAMA_HOST} with model ${GOOSE_MODEL}"
 
@@ -199,115 +199,90 @@ troubleshoot:
     # Handle Cloud Providers
     # ─────────────────────────────────────────────────────────────────────────
 
-    elif [[ "${CHOICE}" == "Cloud: Anthropic (Claude)" ]]; then
-        if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
-            ANTHROPIC_API_KEY=$(gum input --placeholder "Enter Anthropic API key (sk-ant-...)" --password)
-            [[ -z "${ANTHROPIC_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export ANTHROPIC_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="anthropic"
-        export ANTHROPIC_API_KEY
-        echo "Using Anthropic (Claude)"
+    else
+        # Extract provider name from choice
+        PROVIDER_NAME="${CHOICE#Cloud: }"
+        PROVIDER_NAME="${PROVIDER_NAME%% (*}"
 
-    elif [[ "${CHOICE}" == "Cloud: OpenAI (GPT-4)" ]]; then
-        if [[ -z "${OPENAI_API_KEY:-}" ]]; then
-            OPENAI_API_KEY=$(gum input --placeholder "Enter OpenAI API key (sk-...)" --password)
-            [[ -z "${OPENAI_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export OPENAI_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="openai"
-        export OPENAI_API_KEY
-        echo "Using OpenAI (GPT-4)"
+        # Function to setup simple cloud provider with single API key
+        setup_simple_provider() {
+            local env_var="$1"
+            local prompt="$2"
+            local goose_provider="$3"
 
-    elif [[ "${CHOICE}" == "Cloud: Google (Gemini)" ]]; then
-        if [[ -z "${GOOGLE_API_KEY:-}" ]]; then
-            GOOGLE_API_KEY=$(gum input --placeholder "Enter Google API key" --password)
-            [[ -z "${GOOGLE_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export GOOGLE_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="gemini"
-        export GOOGLE_API_KEY
-        echo "Using Google (Gemini)"
-
-    elif [[ "${CHOICE}" == "Cloud: OpenRouter" ]]; then
-        if [[ -z "${OPENROUTER_API_KEY:-}" ]]; then
-            OPENROUTER_API_KEY=$(gum input --placeholder "Enter OpenRouter API key" --password)
-            [[ -z "${OPENROUTER_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export OPENROUTER_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="openrouter"
-        export OPENROUTER_API_KEY
-        echo "Using OpenRouter"
-
-    elif [[ "${CHOICE}" == "Cloud: Groq" ]]; then
-        if [[ -z "${GROQ_API_KEY:-}" ]]; then
-            GROQ_API_KEY=$(gum input --placeholder "Enter Groq API key" --password)
-            [[ -z "${GROQ_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export GROQ_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="groq"
-        export GROQ_API_KEY
-        echo "Using Groq"
-
-    elif [[ "${CHOICE}" == "Cloud: xAI (Grok)" ]]; then
-        if [[ -z "${XAI_API_KEY:-}" ]]; then
-            XAI_API_KEY=$(gum input --placeholder "Enter xAI API key" --password)
-            [[ -z "${XAI_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: export XAI_API_KEY='...' in your shell config to persist"
-        fi
-        export GOOSE_PROVIDER="xai"
-        export XAI_API_KEY
-        echo "Using xAI (Grok)"
-
-    elif [[ "${CHOICE}" == "Cloud: Azure OpenAI" ]]; then
-        if [[ -z "${AZURE_OPENAI_API_KEY:-}" ]]; then
-            echo "Azure OpenAI requires multiple settings:"
-            echo ""
-            AZURE_OPENAI_ENDPOINT=$(gum input --placeholder "Enter Azure endpoint (https://xxx.openai.azure.com)")
-            [[ -z "${AZURE_OPENAI_ENDPOINT}" ]] && echo "No endpoint provided." && exit 0
-            AZURE_OPENAI_DEPLOYMENT_NAME=$(gum input --placeholder "Enter deployment name")
-            [[ -z "${AZURE_OPENAI_DEPLOYMENT_NAME}" ]] && echo "No deployment name provided." && exit 0
-            AZURE_OPENAI_API_KEY=$(gum input --placeholder "Enter Azure API key" --password)
-            [[ -z "${AZURE_OPENAI_API_KEY}" ]] && echo "No API key provided." && exit 0
-            echo ""
-            echo "Tip: Export these in your shell config to persist:"
-            echo "  AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT_NAME, AZURE_OPENAI_API_KEY"
-        fi
-        export GOOSE_PROVIDER="azure-openai"
-        export AZURE_OPENAI_ENDPOINT
-        export AZURE_OPENAI_DEPLOYMENT_NAME
-        export AZURE_OPENAI_API_KEY
-        echo "Using Azure OpenAI"
-
-    elif [[ "${CHOICE}" == "Cloud: AWS Bedrock" ]]; then
-        if [[ -z "${AWS_PROFILE:-}" ]] && [[ -z "${AWS_ACCESS_KEY_ID:-}" ]]; then
-            echo "AWS Bedrock uses your AWS credentials."
-            echo ""
-            echo "Option 1: Set AWS_PROFILE"
-            echo "Option 2: Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
-            echo ""
-            AWS_PROFILE=$(gum input --placeholder "Enter AWS profile name (or leave empty for access keys)")
-            if [[ -z "${AWS_PROFILE}" ]]; then
-                AWS_ACCESS_KEY_ID=$(gum input --placeholder "Enter AWS Access Key ID")
-                [[ -z "${AWS_ACCESS_KEY_ID}" ]] && echo "No credentials provided." && exit 0
-                AWS_SECRET_ACCESS_KEY=$(gum input --placeholder "Enter AWS Secret Access Key" --password)
-                [[ -z "${AWS_SECRET_ACCESS_KEY}" ]] && echo "No credentials provided." && exit 0
-                export AWS_ACCESS_KEY_ID
-                export AWS_SECRET_ACCESS_KEY
-            else
-                export AWS_PROFILE
+            if [[ -z "${!env_var:-}" ]]; then
+                local api_key=$(gum input --placeholder "${prompt}" --password)
+                [[ -z "${api_key}" ]] && echo "No API key provided." && exit 0
+                export "${env_var}=${api_key}"
+                echo ""
+                echo "Tip: export ${env_var}='...' in your shell config to persist"
             fi
-            AWS_REGION=$(gum input --placeholder "Enter AWS region (e.g., us-east-1)" --value "us-east-1")
-            export AWS_REGION
-        fi
-        export GOOSE_PROVIDER="aws_bedrock"
-        echo "Using AWS Bedrock"
+            export GOOSE_PROVIDER="${goose_provider}"
+            echo "Using ${PROVIDER_NAME}"
+        }
+
+        # Handle each cloud provider
+        case "${PROVIDER_NAME}" in
+            "Anthropic")
+                setup_simple_provider "ANTHROPIC_API_KEY" "Enter Anthropic API key (sk-ant-...)" "anthropic"
+                ;;
+            "OpenAI")
+                setup_simple_provider "OPENAI_API_KEY" "Enter OpenAI API key (sk-...)" "openai"
+                ;;
+            "Google")
+                setup_simple_provider "GOOGLE_API_KEY" "Enter Google API key" "gemini"
+                ;;
+            "OpenRouter")
+                setup_simple_provider "OPENROUTER_API_KEY" "Enter OpenRouter API key" "openrouter"
+                ;;
+            "Groq")
+                setup_simple_provider "GROQ_API_KEY" "Enter Groq API key" "groq"
+                ;;
+            "xAI")
+                setup_simple_provider "XAI_API_KEY" "Enter xAI API key" "xai"
+                ;;
+            "Azure OpenAI")
+                if [[ -z "${AZURE_OPENAI_API_KEY:-}" ]]; then
+                    echo "Azure OpenAI requires multiple settings:"
+                    echo ""
+                    AZURE_OPENAI_ENDPOINT=$(gum input --placeholder "Enter Azure endpoint (https://xxx.openai.azure.com)")
+                    [[ -z "${AZURE_OPENAI_ENDPOINT}" ]] && echo "No endpoint provided." && exit 0
+                    AZURE_OPENAI_DEPLOYMENT_NAME=$(gum input --placeholder "Enter deployment name")
+                    [[ -z "${AZURE_OPENAI_DEPLOYMENT_NAME}" ]] && echo "No deployment name provided." && exit 0
+                    AZURE_OPENAI_API_KEY=$(gum input --placeholder "Enter Azure API key" --password)
+                    [[ -z "${AZURE_OPENAI_API_KEY}" ]] && echo "No API key provided." && exit 0
+                    echo ""
+                    echo "Tip: Export these in your shell config to persist:"
+                    echo "  AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_DEPLOYMENT_NAME, AZURE_OPENAI_API_KEY"
+                fi
+                export GOOSE_PROVIDER="azure-openai"
+                export AZURE_OPENAI_ENDPOINT AZURE_OPENAI_DEPLOYMENT_NAME AZURE_OPENAI_API_KEY
+                echo "Using Azure OpenAI"
+                ;;
+            "AWS Bedrock")
+                if [[ -z "${AWS_PROFILE:-}" ]] && [[ -z "${AWS_ACCESS_KEY_ID:-}" ]]; then
+                    echo "AWS Bedrock uses your AWS credentials."
+                    echo ""
+                    echo "Option 1: Set AWS_PROFILE"
+                    echo "Option 2: Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+                    echo ""
+                    AWS_PROFILE=$(gum input --placeholder "Enter AWS profile name (or leave empty for access keys)")
+                    if [[ -z "${AWS_PROFILE}" ]]; then
+                        AWS_ACCESS_KEY_ID=$(gum input --placeholder "Enter AWS Access Key ID")
+                        [[ -z "${AWS_ACCESS_KEY_ID}" ]] && echo "No credentials provided." && exit 0
+                        AWS_SECRET_ACCESS_KEY=$(gum input --placeholder "Enter AWS Secret Access Key" --password)
+                        [[ -z "${AWS_SECRET_ACCESS_KEY}" ]] && echo "No credentials provided." && exit 0
+                        export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
+                    else
+                        export AWS_PROFILE
+                    fi
+                    AWS_REGION=$(gum input --placeholder "Enter AWS region (e.g., us-east-1)" --value "us-east-1")
+                    export AWS_REGION
+                fi
+                export GOOSE_PROVIDER="aws_bedrock"
+                echo "Using AWS Bedrock"
+                ;;
+        esac
     fi
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -327,7 +302,7 @@ stop-troubleshoot:
     #!/usr/bin/bash
     set -euo pipefail
 
-    # Stop the bluespeed container using ramalama
+    # Stop the bluespeed container
     if ramalama containers 2>/dev/null | grep -q "bluespeed"; then
         echo "Stopping Bluespeed LLM server..."
         ramalama stop bluespeed
@@ -336,14 +311,11 @@ stop-troubleshoot:
         echo "No Bluespeed server running."
     fi
 
-    # Also stop any other ramalama containers (cleanup)
-    OTHER_CONTAINERS=$(ramalama containers 2>/dev/null | grep -v "CONTAINER" | grep -v "bluespeed" | awk '{print $NF}' || true)
-    if [[ -n "${OTHER_CONTAINERS}" ]]; then
-        echo "Stopping other RamaLama containers..."
-        for container in ${OTHER_CONTAINERS}; do
-            ramalama stop "${container}" 2>/dev/null || true
-        done
-    fi
+    # Clean up any other ramalama containers
+    OTHER_CONTAINERS=$(ramalama containers 2>/dev/null | tail -n +2 | grep -v "bluespeed" | awk '{print $NF}' || true)
+    for container in ${OTHER_CONTAINERS}; do
+        [[ -n "${container}" ]] && ramalama stop "${container}" 2>/dev/null || true
+    done
 
 # List downloaded and available models
 [group('AI')]

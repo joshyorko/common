@@ -1,0 +1,13 @@
+{
+  "name": "weekly-report",
+  "version": "1.0.0",
+  "description": "Generate weekly status reports from project board",
+  "type": "module",
+  "main": "generate-report.js",
+  "scripts": {
+    "generate": "node generate-report.js"
+  },
+  "dependencies": {
+    "@octokit/graphql": "^8.1.1"
+  }
+}

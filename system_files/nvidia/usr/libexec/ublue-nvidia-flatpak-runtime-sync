@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-SYSTEM_NVIDIA_VERSION=$(head -1 /proc/driver/nvidia/version | grep -oP '\d+\.\d+\.\d+')
+SYSTEM_NVIDIA_VERSION=$(head -1 /proc/driver/nvidia/version | grep -oP '\d+(\.\d+)+')
 FLATPAK_NVIDIA_VERSION=$(echo "${SYSTEM_NVIDIA_VERSION}" | tr '.' '-')
 
 case "${1}" in
@@ -18,7 +18,7 @@ case "${1}" in
         ;;
     sync)
         echo "Installing NVIDIA Flatpak runtime version ${SYSTEM_NVIDIA_VERSION}"
-        flatpak install --noninteractive flathub \
+        flatpak install --system --noninteractive -y flathub \
             org.freedesktop.Platform.GL.nvidia-"${FLATPAK_NVIDIA_VERSION}" \
             org.freedesktop.Platform.GL32.nvidia-"${FLATPAK_NVIDIA_VERSION}"
         ;;

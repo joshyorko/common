@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 
+# Workaround for: https://github.com/flatpak/flatpak/issues/3907
 set -euo pipefail
 
 SYSTEM_NVIDIA_VERSION=$(head -1 /proc/driver/nvidia/version | grep -oP '\d+(\.\d+)+')
@@ -18,6 +19,7 @@ case "${1}" in
         ;;
     sync)
         echo "Installing NVIDIA Flatpak runtime version ${SYSTEM_NVIDIA_VERSION}"
+        flatpak remote-add --system --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
         flatpak install --system --noninteractive -y flathub \
             org.freedesktop.Platform.GL.nvidia-"${FLATPAK_NVIDIA_VERSION}" \
             org.freedesktop.Platform.GL32.nvidia-"${FLATPAK_NVIDIA_VERSION}"

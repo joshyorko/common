@@ -308,7 +308,6 @@ rows:
             - org.audacityteam.Audacity
             - org.ardour.Ardour
             - org.gnome.Fractal
-            - org.gnome.gitlab.YaLTeR.VideoTrimmer
 
   - sections:
       - expand-horizontally: true

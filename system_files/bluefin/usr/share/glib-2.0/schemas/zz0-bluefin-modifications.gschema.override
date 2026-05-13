@@ -78,7 +78,6 @@ sort-directories-first=true
 [org.gnome.mutter]
 center-new-windows=true
 check-alive-timeout=uint32 20000
-experimental-features=['scale-monitor-framebuffer', 'xwayland-native-scaling']
 
 [com.github.stunkymonkey.nautilus-open-any-terminal]
 terminal='ptyxis'

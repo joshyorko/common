@@ -262,7 +262,7 @@ rows:
             - org.videolan.VLC
             - com.github.wwmm.easyeffects
             - me.timschneeberger.jdsp4linux
-            - com.github.iwalton3.jellyfin-media-player
+            - org.jellyfin.JellyfinDesktop
             - tv.plex.PlexDesktop
             - com.plexamp.Plexamp
             - com.rafaelmardojai.Blanket

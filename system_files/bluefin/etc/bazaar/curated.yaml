@@ -445,6 +445,7 @@ rows:
             - io.github.mfat.sshpilot
             - io.github.shonebinu.Brief
             - io.github.getnf.embellish
+            - de.wwwtech.gitte
 
   - sections:
       - expand-horizontally: true

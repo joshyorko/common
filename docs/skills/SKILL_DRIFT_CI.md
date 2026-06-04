@@ -1,7 +1,6 @@
 ---
-title: "Skill Drift CI: Keeping Documentation in Sync"
-load_when: "Your PR failed the skill-drift check, or you're updating system code and wondering if docs need to change"
-categories: ["ci", "documentation", "automation"]
+name: SKILL_DRIFT_CI
+description: "How the skill-drift CI check works — when it fires, what it validates, and how to satisfy or suppress it when updating system code."
 ---
 
 # Skill Drift CI — Keeping Documentation in Sync

@@ -1,6 +1,6 @@
 # Factory Migration Status
 
-Last updated: 2026-06-02
+Last updated: 2026-06-04
 
 This document tracks the migration of all 5 factory repos to the unified agentic model.
 
@@ -11,11 +11,11 @@ This document tracks the migration of all 5 factory repos to the unified agentic
 | AGENTS.md | ✅ | ✅ | ✅ | ✅ | ✅ |
 | hive/p0, hive/p1 labels | ✅ | ✅ | ✅ | ✅ | ✅ |
 | queue/agent-ready, agent/blocked labels | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Squash-only merge | ✅ | ✅ | ✅ | ✅ | ❌ [#411] |
-| 5 standard issue templates | ✅ | ✅ | ✅ | ✅ | ❌ [#416] |
-| CODEOWNERS + triage sentinel | ✅ | ✅ | ✅ | ✅ | ❌ [#414] |
+| Squash-only merge | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 5 standard issue templates | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CODEOWNERS + triage sentinel | ✅ | ✅ | ✅ | ✅ | ✅ |
 | hive sync workflow | ❌ [#407] | ❌ [#407] | ❌ [#407] | ✅ | ✅ |
-| bonedigger.yml lifecycle | ✅ | ❌ [#412] | ❌ [#412] | ❌ [#412] | ❌ [#412] |
+| bonedigger.yml lifecycle | ✅ | ❌ [#412] | ✅ | ❌ [#412] | ❌ [#412] |
 | skill-drift.yml | ✅ | ✅ | ❌ [#413] | ✅ | ❌ [#413] |
 | .pre-commit-config.yaml | ✅ | ✅ | ✅ | ❌ [#415] | ❌ [#415] |
 | Renovate config | ✅ | ✅ (main, intentional) | ❌ [#410] | ❌ [#410] | ❌ [#410] |
@@ -35,10 +35,10 @@ Issue links are to `projectbluefin/common`.
 ## What's complete ✅
 
 - All 5 repos: AGENTS.md, full label set, auto-merge, delete-branch-on-merge
-- 4/5 repos (all except knuckle): squash-only, 5 issue templates, CODEOWNERS
+- All 5 repos: squash-only merge, 5 standard issue templates, CODEOWNERS with triage sentinel
 - bluefin + bluefin-lts: pre-commit, skill-drift, Renovate
 - dakota + knuckle: hive sync workflows (with label bug — see #406)
-- bluefin: bonedigger lifecycle wired
+- bluefin + common: bonedigger lifecycle wired
 
 ## QA gaps (see docs/skills/qa.md for full details)
 

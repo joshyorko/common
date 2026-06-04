@@ -1,3 +1,8 @@
+---
+name: knuckle-release
+description: "End-to-end release procedure for projectbluefin/knuckle — unit tests, VM installs, ISO smoke, tagging, and asset audit."
+---
+
 # knuckle-release — Release E2E & Tagging Skill
 
 End-to-end release procedure for `projectbluefin/knuckle`. Covers the full

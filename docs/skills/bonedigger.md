@@ -1,3 +1,8 @@
+---
+name: bonedigger
+description: "bonedigger integration guide — issue lifecycle automation, template sync, current status per repo, and known issues."
+---
+
 # bonedigger — Crash Detection & Issue Lifecycle
 
 **Repo:** https://github.com/projectbluefin/bonedigger
@@ -42,11 +47,11 @@ Always pin to a SHA, not a branch ref.
 
 | Repo | bonedigger.yml | Status |
 |---|---|---|
-| bluefin | ✅ | Active — pinned to SHA 743f564 |
-| bluefin-lts | ❌ | Missing — see common#412 |
-| common | ❌ | Missing — see common#412 |
-| dakota | ❌ | Missing — see common#412 |
-| knuckle | ❌ | Missing — uses actionadon instead — see common#412 |
+| bluefin | ✅ | Active — pinned SHA |
+| common | ✅ | Active — aligned 2026-06-04, PR #490 |
+| bluefin-lts | ❌ | Missing |
+| dakota | ❌ | Missing — uses actionadon instead |
+| knuckle | ❌ | Missing — uses actionadon instead |
 
 ## Template sync
 

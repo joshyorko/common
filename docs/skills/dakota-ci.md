@@ -459,85 +459,10 @@ on every command that should stop execution on failure.
 
 ---
 
-## e2e CI Pipeline (projectbluefin/testsuite)
 
-The e2e pipeline (`.github/workflows/e2e.yml` in testsuite) runs GNOME smoke tests against a
-live QEMU VM booted from the dakota image. This is distinct from the BST build pipeline.
+## e2e CI Pipeline
 
-### Architecture
-
-```
-dakota e2e.yml → testsuite e2e.yml (reusable) → QEMU VM (boots :sha image)
-                                               → qecore/behave smoke tests
-```
-
-### Hard-Won Lessons
-
-#### GDM restarts flush environment
-qecore-headless calls `gdm restart` before running tests. Any PATH injected via:
-- `/tmp/session.env`
-- `~/.config/environment.d/99-ci-path.conf`
-...is LOST. The GNOME session launched after restart gets the default PAM-set PATH.
-
-Fix: Disable the keyring step entirely — GNOME 50 apps don't require it:
-```python
-# tests/smoke/features/environment.py — after sandbox init
-context.sandbox.set_keyring = False
-```
-
-#### GNOME 50 AT-SPI roleName change
-In GNOME 50, Nautilus and Settings expose their top-level window as `roleName="filler"`
-not `roleName="frame"`. All AT-SPI window finders must accept both:
-```python
-n.roleName in {"frame", "filler"}
-```
-
-#### GNOME 50 Shell.Eval format change
-`gdbus call ... org.gnome.Shell.Eval` returns `(true, '"true"')` (double-quoted JS string)
-in GNOME 50. The `_eval_bool` regex must be: `r',\s*\'"?(true|false)"?\'\s*\)'`
-
-Also: `context.sandbox.shell.eval_js()` was removed in newer qecore.
-Use `_shell_eval()` helper in steps.py instead.
-
-#### bootc status in QEMU VMs
-`sudo bootc status` fails with `opendir(boot): Operation not permitted` in CI VMs.
-The QEMU VM is booted via direct kernel+initrd (no bootupd), so `/boot` is not accessible
-from within the guest in the expected way. Skip or mock this test step in CI.
-
-#### gnome-ponytail-daemon meson.build
-The upstream `meson.build` has `dependency('systemd')` which fails on Debian (no
-`systemd.pc`, only `libsystemd.pc`). Apply at build time:
-```bash
-sed -i "s/dependency('systemd')/dependency('systemd', required: false)/" meson.build
-```
-The daemon functions without libei (falls back to Mutter D-Bus).
-
-#### systemd units that fail at boot in VMs
-Mask these in KERNEL_ARGS or deployment service masks to prevent health check failures:
-- `avahi-daemon.service avahi-daemon.socket`
-- `cups.service cups.path cups.socket cups.browsed`
-- `ModemManager.service`
-- `malcontent-control.service`
-- `podman-auto-update.timer`
-- `gnome-remote-desktop.service`
-- `blueman-mechanism.service`
-
-### Test Progress Baseline
-As of 2026-05-30, latest full run (run 26686736854):
-- 26 passed, 28 failed
-- Fixes applied (commits 092a6c7 and earlier):
-  - SSH auth (900s deadline, AuthorizedKeysCommand)
-  - Home dir creation (tmpfiles.d)
-  - python-uinput wheel build on runner
-  - PATH in SSH session (`~/.local/bin`)
-  - gnome-ponytail-daemon build + install
-  - Shell.Eval GNOME 50 regex fix
-  - eval_js → _shell_eval() for workspace steps
-- Still failing:
-  - keyring PATH (qecore_create_keyring not found) — fix: set_keyring = False
-  - Nautilus/Settings window (AT-SPI roleName "filler") — fix: accept both roles
-  - bootc status /boot permission — fix: skip in CI
-  - system_health failed units — fix: mask more units
+See [e2e-ci.md](e2e-ci.md) for the full GNOME smoke test architecture, hard-won lesssons, and debugging patterns.
 
 ### Merge queue / testing branch (added 2026-06-01)
 

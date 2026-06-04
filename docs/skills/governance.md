@@ -40,6 +40,7 @@ docs/**  @handle1 @handle2
 | `bluefin` | `@castrojo @p5 @m2Giles @tulilirockz` | `.github/workflows/`, `Justfile`, `build_files/` |
 | `bluefin-lts` | same as bluefin | same + `image-versions.yml` exempt (Renovate) |
 | `dakota` | same as bluefin | same + `elements/` |
+| `knuckle` | `@castrojo @p5 @m2Giles @tulilirockz` | `.github/workflows/`, `Justfile` |
 | `knuckle` | same as bluefin | same as bluefin |
 
 ## Sync workflow
@@ -88,6 +89,7 @@ required for a PR to merge — triagers count for `docs/**` and `*.md` paths.
 | `bluefin` | Branch protection on `main` | 1 |
 | `bluefin-lts` | Branch protection on `main` | 1 |
 | `dakota` | Branch protection on `main` | 1 |
+| `knuckle` | Ruleset `main — merge queue` | 1 (merge queue) |
 
 ## Documentation changes — push directly to main
 

@@ -1,3 +1,8 @@
+---
+name: hive
+description: "Hive label taxonomy, sync workflow schedule, org board fields, and how to find work across the projectbluefin factory."
+---
+
 # Hive Label Taxonomy & Org Board
 
 ## What is the hive

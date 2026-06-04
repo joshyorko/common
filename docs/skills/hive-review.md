@@ -1,7 +1,6 @@
 ---
-title: "Hive-Status: Triaging Tool"
-load_when: "Starting your session — reviewing P0/P1 issues, triaging incoming reports"
-categories: ["triage", "hive-labels"]
+name: hive-review
+description: "Session start ritual — run ~/src/hive-status, interpret P0/P1 output, triage advisory items, and find agent-ready issues."
 ---
 
 # Hive-Status — P0/P1 Triage Tool

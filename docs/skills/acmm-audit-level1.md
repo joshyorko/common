@@ -1,11 +1,11 @@
 ---
 name: acmm-audit-level1
-description: "ACMM Level 1 audit (2026-06-04) — blindspots, feedback mechanisms, structural obstacles, and Level 2 recommendations."
+description: "ACMM Level 1 audit — blindspots, feedback mechanisms, structural obstacles, and Level 2 recommendations. Continuously revised."
 ---
 
 # ACMM Level 1 Audit — Project Bluefin Factory
 
-**Date:** 2026-06-04
+**Initial date:** 2026-06-04  **Last revised:** 2026-06-04 (follow-up pass)
 **Framework:** AI Codebase Maturity Model (arXiv:2604.09388)
 **Level:** 1 (Assisted) → bridge to Level 2 (Instructed)
 **Scope:** `common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`, `testsuite`

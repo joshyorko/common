@@ -17,7 +17,7 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 | `validate-brewfiles.yaml` | Validates Brewfile correctness | Changing Brewfile structure or Brewfile validation rules |
 | `docs-quality.yml` | PR gate: skill frontmatter presence and Trail of Bits CI integration | Keeping skill docs complete and well-formed |
 | `build.yml` | Builds and publishes the `common` OCI layer on merge | Changing how the shared layer is built or pushed |
-| `pr-e2e.yml` | Pre-merge composed-image gate for the PR's common layer | Changing how PR-time downstream composition is tested |
+| `pr-e2e.yml` | Pre-merge composed-image gate for the PR's common layer (**⚠️ e2e job currently disabled — compose runs but no scenarios execute, see [#493](https://github.com/projectbluefin/common/issues/493)**) | Changing how PR-time downstream composition is tested |
 | `e2e.yml` | Post-merge common-suite validation against Bluefin stable, Bluefin LTS, and Dakota | Changing shipped-layer validation after merge |
 | `run-testsuite.yml` | Local wrapper that centralizes the pinned `projectbluefin/testsuite` SHA | Updating the shared testsuite pin or common-side testsuite wiring |
 | `promotion-candidate-e2e.yml` | Weekly smoke/common check against `bluefin:testing` and `bluefin:lts-testing` | Adjusting common-side signal before downstream Tuesday promotions |

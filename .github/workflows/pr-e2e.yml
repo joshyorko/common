@@ -112,7 +112,7 @@ jobs:
   e2e:
     name: E2E — composed common suite
     needs: compose
-    if: false # temporarily disabled — e2e suite is known broken
+    if: false # temporarily disabled — e2e suite is known broken (see issue #493 for recovery path)
     permissions:
       contents: read
       packages: write

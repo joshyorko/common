@@ -15,30 +15,23 @@ This document tracks the migration of all 5 factory repos to the unified agentic
 | 5 standard issue templates | ✅ | ✅ | ✅ | ✅ | ✅ |
 | CODEOWNERS + triage sentinel | ✅ | ✅ | ✅ | ✅ | ✅ |
 | hive sync workflow | ❌ [#407] | ❌ [#407] | ❌ [#407] | ✅ | ✅ |
-| bonedigger.yml lifecycle | ✅ | ❌ [#412] | ✅ | ❌ [#412] | ❌ [#412] |
-| skill-drift.yml | ✅ | ✅ | ❌ [#413] | ✅ | ❌ [#413] |
+| bonedigger.yml lifecycle | ✅ | ✅ | ✅ | ❌ [#412] | ❌ [#412] |
+| skill-drift.yml | ✅ | ✅ | ✅ | ✅ | ❌ [#413] |
 | .pre-commit-config.yaml | ✅ | ✅ | ✅ | ❌ [#415] | ❌ [#415] |
 | Renovate config | ✅ | ✅ (main, intentional) | ❌ [#410] | ❌ [#410] | ❌ [#410] |
 
 Issue links are to `projectbluefin/common`.
 
-## bonedigger state
-
-| Item | State |
-|---|---|
-| AGENTS.md | ❌ [#418] |
-| hive labels | ❌ [#418] |
-| auto-merge | ❌ [#418] |
-| Factory integration | bluefin only; 4 repos missing [#412] |
-| sync-templates namespace | ❌ wrong org [#408] |
+| bonedigger state | ❌ AGENTS.md, hive labels, auto-merge [#418] | ✅ functional (lifecycle.yml@main) | ✅ functional | ❌ [#412] | ❌ [#412] |
 
 ## What's complete ✅
 
 - All 5 repos: AGENTS.md, full label set, auto-merge, delete-branch-on-merge
 - All 5 repos: squash-only merge, 5 standard issue templates, CODEOWNERS with triage sentinel
-- bluefin + bluefin-lts: pre-commit, skill-drift, Renovate
+- bluefin + bluefin-lts + common: pre-commit, skill-drift, Renovate (common Renovate still ❌ [#410])
+- bluefin + bluefin-lts + common: bonedigger lifecycle wired
 - dakota + knuckle: hive sync workflows (with label bug — see #406)
-- bluefin + common: bonedigger lifecycle wired
+- all 5 image repos: skill-drift.yml (knuckle still ❌ [#413])
 
 ## QA gaps (see docs/skills/qa.md for full details)
 

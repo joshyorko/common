@@ -1,12 +1,12 @@
 ---
 name: acmm-audit-level1
-description: "ACMM Level 1 audit — current open gaps, parity matrix, and active blindspot rules. Historical resolved items moved to appendix."
+description: "ACMM Level 1 audit — historical record. Superseded by acmm-audit-level2.md. Active blindspot rules and parity matrix moved there."
 ---
 
 # ACMM Level 1 Audit — Project Bluefin Factory
 
 **Framework:** AI Codebase Maturity Model (arXiv:2604.09388)
-**Current level:** 1 (Assisted) → actively bridging to Level 2 (Instructed)
+**Current level (at audit time):** 2 (Assisted) → bridging to Level 3 (Instructed) — **superseded by [acmm-audit-level2.md](acmm-audit-level2.md)**
 **Scope:** `common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`, `testsuite`
 **Last updated:** 2026-06-05 (third-pass audit)
 
@@ -31,7 +31,7 @@ factory** — must be the first thing any agent reads. `common` is the org brain
 - `actions` consumer contract validation added (PR#83)
 - BS-1.21 promoted to full blindspot entry
 
-**Remaining blockers to Level 2:**
+**Remaining blockers to Level 3:**
 - Nightly CI desensitization (LTS + GDX suites persistently red) — human blocked
 - Installability gate not wired before `testing → stable` — human blocked (#423)
 - Migration test not auto-triggered (queue/hold) — human blocked (testsuite#232)

@@ -364,12 +364,12 @@ report:
     BUG_URL="${ISSUE_URL_BASE}${ISSUE_JOINER}report-link=${ENCODED_URL}"
     echo ""
     gum style --foreground 245 --margin "0 2" "Open in browser:"
-    CHOICE="$(gum choose "🐛 File a bug report" "✨ Request a feature" "Skip" || echo "Skip")"
+    CHOICE="$(gum choose "File a bug report" "Request a feature" "Skip" || echo "Skip")"
     case "$CHOICE" in
-        "🐛 File a bug report")
+        "File a bug report")
             xdg-open "$BUG_URL" 2>/dev/null || gum style --foreground 245 --margin "0 2" "Visit: $BUG_URL"
             ;;
-        "✨ Request a feature")
+        "Request a feature")
             xdg-open "$FEATURE_URL" 2>/dev/null || gum style --foreground 245 --margin "0 2" "Visit: $FEATURE_URL"
             ;;
         *)

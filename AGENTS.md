@@ -27,9 +27,12 @@ Violating this risks getting the projectbluefin organization banned from GitHub.
 ### Repo map
 
 ```
-common ──────────────────────────┐
-(shared OCI layer)               │
-                                 ▼
+actions ──────────────────────────────────────────────┐
+(shared CI/CD composite actions)                      │
+                                                      ▼
+common ──────────────────────────┐         reusable-build.yml
+(shared OCI layer)               │         sign-and-publish
+                                 ▼         scan-image (planned)
 bluefin  (main→stable)       ←── images ──→ testsuite (e2e gate)
 bluefin-lts (main→lts)       ←── images ──→ testsuite (e2e gate)
 dakota  (main→:latest)       ←── images ──→ testsuite (e2e gate)
@@ -40,6 +43,8 @@ dakota  (main→:latest)       ←── images ──→ testsuite (e2e gate)
 
 Each image repo pulls `ghcr.io/projectbluefin/common:latest` as a base layer.
 testsuite gates `:latest` promotion in all three image repos.
+
+**Supply chain policy:** All signing, SBOM generation, CVE scanning, and provenance attestation logic lives in `projectbluefin/actions`. Do not add inline supply chain steps to `common`'s workflows — consume the shared composite actions instead. See [docs/skills/release-promotion.md](docs/skills/release-promotion.md) and [actions#86](https://github.com/projectbluefin/actions/issues/86).
 
 ### Issue lifecycle
 
@@ -168,6 +173,7 @@ Load the relevant skill doc before making changes in these areas.
 | `ublue-rollback-helper` changes | [`docs/skills/rollback-helper.md`](docs/skills/rollback-helper.md) |
 | CI / GitHub Actions | [`docs/skills/ci-tooling.md`](docs/skills/ci-tooling.md) |
 | What a `common` workflow is for | [`docs/skills/workflow-map.md`](docs/skills/workflow-map.md) |
+| Release, promotion criteria, artifact verification | [`docs/skills/release-promotion.md`](docs/skills/release-promotion.md) |
 | E2E test changes | [`docs/skills/e2e-ci.md`](docs/skills/e2e-ci.md) |
 | Governance / CODEOWNERS | [`docs/skills/governance.md`](docs/skills/governance.md) |
 | PR queue / merge decisions | [`docs/skills/queue-dashboard.md`](docs/skills/queue-dashboard.md) |

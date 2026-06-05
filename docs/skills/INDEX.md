@@ -35,6 +35,7 @@ Agent-specific instruction files (`.github/copilot-instructions.md`, `AGENTS.md`
 | [bluefin-lts.md](bluefin-lts.md) | LTS variant — critical production warnings about disabled ISOs; always load before LTS work |
 | [bluefin-packages.md](bluefin-packages.md) | Package management — brew formulas, flatpaks, RPM/DNF packages, COPR repos |
 | [bluefin-release.md](bluefin-release.md) | Release process — changelogs, stream tags (gts/stable/latest/beta), release cadence |
+| [release-promotion.md](release-promotion.md) | **common** release and promotion — criteria, monthly cadence, hotfix process, artifact verification, supply chain gaps |
 | [bluefin-renovate.md](bluefin-renovate.md) | Renovate dependency update handling — reviewing/merging Renovate PRs, configuring behavior |
 | [bluefin-security.md](bluefin-security.md) | Security model — COPR repos, cosign verification, secureboot, sensitive package decisions |
 | [bluefin-variants.md](bluefin-variants.md) | Variant and stream matrix — which image/tag/flavor to use, build matrix, explaining variants |

@@ -8,7 +8,8 @@
 # priority/p0, priority/p1) from all factory repos to the project board as
 # cards. addProjectV2ItemById is idempotent — safe to run hourly.
 #
-# Requires: projects: write permission (uses github.token — no PAT needed)
+# Requires: PROJECT_TOKEN secret — PAT with `project` + `repo` OAuth scopes.
+#   github.token cannot write to org-level ProjectV2 boards.
 # Project board: PVT_kwDOCCE0ds4BLZBC (todo.projectbluefin.io, #2)
 
 name: Hive Progress Sync
@@ -27,13 +28,12 @@ jobs:
       contents: read
       actions: read
       issues: read
-      repository-projects: write
 
     steps:
       - name: Post common queue status to project board
         env:
           GH_TOKEN: ${{ github.token }}
-          PROJECT_TOKEN: ${{ github.token }}
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           python3 << 'PYEOF'
           import json, subprocess, sys, os
@@ -142,7 +142,7 @@ jobs:
 
       - name: Sync epics and P0/P1 issues to project board
         env:
-          PROJECT_TOKEN: ${{ github.token }}
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           python3 << 'PYEOF'
           import json, subprocess, sys, os

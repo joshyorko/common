@@ -45,17 +45,21 @@ For the workflow-by-workflow purpose map inside `common`, see
 
 ## Agentic operating model
 
-Lifecycle: `filed → approved → queued → claimed → done`
+Lifecycle: `filed → triage → queued → claimed → done`
 
 | Stage | Meaning |
 |---|---|
-| `filed` | Issue exists but is not ready for execution |
-| `approved` | Maintainer adds `status/approved` or comments `/approve` |
-| `queued` | `status/queued` marks the issue ready for pickup |
-| `claimed` | Agent comments `/claim`; issue is assigned and leaves the pool |
+| `filed` | Issue opened — automation adds `status/triage` and the pipeline widget |
+| `triage` | Maintainer sets `kind/` + `area/`, then comments `/approve` |
+| `queued` | `/approve` passes the label guard and sets `status/queued` |
+| `claimed` | Contributor comments `/claim`; issue is assigned and leaves the pool |
 | `done` | Fix is shipped and verified; standard target is 3× `ujust verify`, or maintainer override |
 
-Bonedigger manages this lifecycle across all factory repos. No PR activity in 7 days should return the claim (`/unclaim`).
+The lifecycle automation runs from `projectbluefin/common/.github/workflows/lifecycle.yml`
+and is deployed to every factory repo. The issue body always shows a pipeline widget with
+the current stage and exact next action. No PR activity in 7 days returns the claim automatically.
+
+bonedigger handles only: `ujust report` issue filing and priority auto-escalation from confirm counts.
 
 ## Agent rules of engagement
 
@@ -83,12 +87,13 @@ The canonical definition lives in `common/AGENTS.md`. This is a pointer.
 The following are wired across the factory today (not every item applies to every repo):
 
 - **AGENTS.md** — per-repo operating contract
-- **Label taxonomy** — `hive/p0`, `hive/p1`, `status/queued`, `status/claimed`, `agent/blocked`, `source:*`
+- **Label taxonomy** — canonical definitions in `labels.json`, synced to all repos by `sync-labels.yml`; key labels: `hive/p0`, `hive/p1`, `status/queued`, `status/claimed`, `agent/blocked`, `source:*`
 - **Squash-only merge + delete-branch-on-merge**
 - **5 standard issue templates**
 - **CODEOWNERS** with triage sentinel — synced from `common` to downstream repos via `sync-codeowners.yml`
 - **hive-progress-sync.yml** — hourly org board update
-- **bonedigger lifecycle automation** — issue pipeline active in `common`, `bluefin`, `bluefin-lts`, and `dakota`. `common`/`bluefin` are SHA-pinned; `bluefin-lts`/`dakota` intentionally use `@main` (bonedigger has no versioned releases — see [`../skills/ci-tooling.md`](../skills/ci-tooling.md))
+- **lifecycle.yml** — common-owned issue/PR lifecycle: slash commands, widget, label guard, stale sweep. Active in all 6 factory repos via `lifecycle-caller.yml`.
+- **bonedigger** — scoped to ujust report filing and priority auto-escalation only
 - **skill-drift.yml** — PR advisory gate for doc/impl parity (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`; `testsuite` pending)
 - **pre-commit** — json/yaml/toml hygiene and `no-floating-action-tags` (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`)
 - **Renovate** — automated dependency updates (`common`, `bluefin`, `bluefin-lts`, `actions`, `testsuite`; `dakota` not yet)
@@ -106,7 +111,7 @@ The following are wired across the factory today (not every item applies to ever
 | pre-commit | ✅ | ✅ | ✅ | ✅ | — | — |
 | skill-drift.yml | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | no-floating-action-tags | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| bonedigger lifecycle | ✅ | ✅ | ✅ | ✅ | — | — |
+| lifecycle.yml caller | ✅ | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) |
 | Renovate config | ✅ | ✅ | ❓ org-inherited | ❌ | ✅ | ✅ |
 | Post-merge e2e | ✅ | ✅ | ✅ | partial | — | — |
 | Pre-merge e2e | ✅ (common suite) | ✅ (pr-smoke) | ❌ | ❌ | — | — |

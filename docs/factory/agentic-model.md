@@ -16,18 +16,22 @@ Deep reference for label taxonomy, branch targets, and sensitive paths. **Entry 
 ## Issue lifecycle
 
 ```
-filed → approved → queued → claimed → done
+filed → triage → queued → claimed → done
 ```
 
 | Stage | Trigger |
 |---|---|
 | `filed` | Issue opened |
-| `approved` | Maintainer adds `status/approved` or comments `/approve` |
-| `queued` | `status/queued` label added |
-| `claimed` | Agent comments `/claim` — gets assigned, removed from pool |
+| `triage` | `status/triage` added automatically on open |
+| `queued` | Maintainer comments `/approve` (requires `kind/` + `area/` to be set) |
+| `claimed` | Contributor comments `/claim` — gets assigned, removed from pool |
 | `done` | Fix shipped, verified |
 
-No PR activity in 7 days returns a claimed issue to the queue.
+No activity for 7 days returns a claimed issue to the queue (daily stale sweep).
+
+Lifecycle automation lives in `projectbluefin/common/.github/workflows/lifecycle.yml` and is
+called by every factory repo. See [`../skills/label-workflow.md`](../skills/label-workflow.md)
+for the full reference.
 
 ## Label taxonomy
 
@@ -39,8 +43,8 @@ source of truth. The summary below is for quick agent lookup.
 
 | Label | Actor | Do this |
 |---|---|---|
-| `status/triage` 🟠 | **Human** | Set `kind/` + `area/`, then `/approve` or add `status/discussing` |
-| `status/discussing` 🔵 | **Human** | Drive to consensus, update spec, then `/approve` |
+| `status/triage` 🟣 | **Human** | Set `kind/` + `area/`, then comment `/approve` or add `status/discussing` |
+| `status/discussing` 🔵 | **Human** | Drive to consensus, update spec, then comment `/approve` |
 | `status/queued` 🟣 | **Agent** | Comment `/claim` |
 | `status/claimed` 🟡 | **Agent** | Implement → open PR with `Closes #NNN` |
 | `agent/blocked` 🔴 | **Human** | Read issue comment, unblock, remove label |
@@ -50,8 +54,9 @@ source of truth. The summary below is for quick agent lookup.
 
 ### Lifecycle (ordered)
 ```
-status/triage → status/discussing → status/approved → status/queued → status/claimed → done
+status/triage → [status/discussing] → status/queued → status/claimed → done
 ```
+`/approve` is the transition from triage/discussing → queued. No `status/approved` label exists.
 Overlays (can coexist with any stage): `status/hold`, `agent/blocked`
 
 ### Hive labels (dynamic — reset each release cycle)
@@ -79,7 +84,7 @@ Overlays (can coexist with any stage): `status/hold`, `agent/blocked`
 | `source:ujust-report` | Filed via `ujust report` on a live system |
 
 ### Labels being retired (do not use for new issues)
-`bug`, `type/bug`, `type/feature`, `needs-human/agent-ready`, `agent/claimed`, `size:*`, `copilot-ready`, `hold` — see migration table in `label-workflow.md`.
+`bug`, `type/bug`, `type/feature`, `needs-human/agent-ready`, `agent/claimed`, `size:*` (colon variants), `copilot-ready`, `hold` (bare), `status/approved` — these are cleaned up automatically by `sync-labels.yml` when it runs.
 
 ## PR policy
 

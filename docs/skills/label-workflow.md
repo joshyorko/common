@@ -14,19 +14,34 @@ Labels are the handoff signal between the two.
 
 ---
 
+## Automation ownership
+
+The lifecycle automation lives in **`projectbluefin/common/.github/workflows/lifecycle.yml`**
+and is called by every factory repo. Common owns:
+
+- Label definitions (`labels.json`) and cross-repo sync (`sync-labels.yml`)
+- Slash commands (`/approve`, `/claim`, `/unclaim`, `/wontfix`, `/hold`, `/unhold`)
+- Issue widget (the pipeline status block embedded in each issue body)
+- Label guard (blocks `/approve` if `kind/` or `area/` is missing)
+- Stale-claim sweep (daily — returns inactive claims after 7 days)
+
+**bonedigger** handles only: `ujust report` issue filing and priority auto-escalation from `ujust confirm` counts.
+
+---
+
 ## Next-step reference
 
-Every issue and PR always has exactly one actor who owns it. Find the active label — that tells you who acts next and what they do.
+Every issue and PR always has exactly one actor who owns it. The issue body widget shows your current stage and the exact next action. Find the active label below if you need the quick lookup.
 
 ### Issues
 
 | Label | 🟠 Actor | Next action |
 |---|---|---|
-| `status/triage` | **Human** triager | Set `kind/` + `area/`, then `/approve` or add `status/discussing` |
-| `status/discussing` | **Human** maintainer | Drive to consensus, update spec, then `/approve` |
+| `status/triage` | **Human** triager | Set `kind/` + `area/`, then comment `/approve` or add `status/discussing` |
+| `status/discussing` | **Human** maintainer | Drive to consensus, update spec in issue body, then comment `/approve` |
 | `status/queued` | **Agent** / contributor | Comment `/claim` |
 | `status/claimed` | **Agent** | Implement → open PR with `Closes #NNN` |
-| `agent/blocked` | **Human** | Read issue comment → unblock → remove label |
+| `agent/blocked` | **Human** | Read the issue comment → unblock → remove label |
 | `status/hold` | *nobody* | Intentionally paused — read comments for reason |
 
 ### PRs
@@ -45,9 +60,11 @@ Every issue and PR always has exactly one actor who owns it. Find the active lab
 Issues follow one of two entry paths depending on type, then converge into a shared pipeline:
 
 ```
-BUG:     filed → [status/triage] → status/approved → status/queued → status/claimed → done
-FEATURE: filed → [status/discussing] → status/approved → status/queued → status/claimed → done
+BUG:     filed → status/triage    → status/queued → status/claimed → done
+FEATURE: filed → status/discussing → status/queued → status/claimed → done
 ```
+
+`/approve` moves an issue directly to `status/queued`. There is no intermediate `status/approved` label.
 
 Blocking overlays (can be applied at any stage):
 - `status/hold` — paused intentionally, do not touch
@@ -93,12 +110,15 @@ When an issue is fully scoped and ready for implementation:
 
 - Comment `/approve`
 
-Bonedigger responds by adding `status/approved` and `status/queued`.
-The issue is now in the work pool.
+The lifecycle automation checks that the issue has exactly one `kind/` label and at least one
+`area/` label. If either is missing, the command is rejected with an explanation.
+On success, `status/triage` / `status/discussing` is removed and `status/queued` is added.
+The issue widget updates to show the new stage and next action.
 
-**Manual fallback (if bonedigger is down):**
+**Manual fallback (if automation is down):**
 ```
-Add: status/approved + status/queued
+Add: status/queued
+Remove: status/triage (or status/discussing)
 ```
 
 ### Reviewing agent PRs
@@ -149,12 +169,12 @@ Check each candidate issue for `status/hold` before claiming — those are off-l
 
 ### Claiming an issue
 
-Comment `/claim` on the issue. Bonedigger will:
+Comment `/claim` on the issue. The lifecycle automation will:
 1. Replace `status/queued` with `status/claimed`
 2. Assign the issue to you
-3. Remove you from the available pool for this issue
+3. Update the issue widget
 
-**Manual fallback (if bonedigger is down):**
+**Manual fallback (if automation is down):**
 ```
 Add: status/claimed
 Remove: status/queued
@@ -210,11 +230,10 @@ Unassign yourself
 
 | Label | Color | Who sets it | Meaning |
 |---|---|---|---|
-| `status/triage` | 🟠 orange | Auto on bug reports | New bug. Human must set kind/ + area/, then /approve or add discussing. |
-| `status/discussing` | 🔵 blue | Auto on features; human for bugs needing design | Under discussion. Human must reach consensus before /approve. |
-| `status/approved` | 🟢 green | Human (`/approve`) | Approved. Bonedigger adds status/queued automatically. |
-| `status/queued` | 🟣 purple | Bonedigger or human | In the work pool. Agent: comment /claim to take it. |
-| `status/claimed` | 🟡 amber | Bonedigger or agent | Actively being worked. Open PR with Closes #NNN. |
+| `status/triage` | 🟣 lavender | Auto on issue open | New issue. Human: set `kind/` + `area/`, then comment `/approve` or add `status/discussing`. |
+| `status/discussing` | 🔵 blue | Auto on features; human for bugs needing design | Under discussion. Human: reach consensus, update spec, then comment `/approve`. |
+| `status/queued` | 🟣 purple | Lifecycle automation (`/approve`) | In the work pool. Contributor: comment `/claim` to take it. |
+| `status/claimed` | 🟡 amber | Lifecycle automation (`/claim`) | Actively being worked. Owner: open PR with `Closes #NNN`. |
 | `status/hold` | ⬜ gray | Human | Off-limits — do not claim or touch. Read comments for reason. |
 | `agent/blocked` | 🔴 red | Agent | Agent stuck; needs human decision. Read the issue comment. |
 
@@ -271,7 +290,7 @@ An issue can carry **both** a `hive/*` and a `priority/*` — they track differe
 | `source:manual` | Filed by a human contributor |
 | `source:ujust-report` | Filed via `ujust report` by a user |
 
-Note: `source:` uses a colon separator — this is intentional for compatibility with bonedigger's label routing.
+Note: `source:` uses a colon separator — retained for automation compatibility with bonedigger's ujust report routing.
 
 ### PR labels
 
@@ -296,12 +315,14 @@ Note: `tests:pass` uses a colon separator — retained for CI automation compati
 
 ### Agent flow triggers
 
-Applied to issues to request a specific agent workflow:
+Applied to issues or PRs to request a specific agent workflow. The agent removes the label after completing the task.
 
-| Label | Meaning |
-|---|---|
-| `flow/issue-review` | Agent: review the linked issue, post findings as a comment, remove this label. |
-| `flow/pr-review` | Agent: review the linked PR, post findings as a comment, remove this label. |
+| Label | Who applies | Meaning |
+|---|---|---|
+| `flow/issue-review` | Human or maintainer | Agent: review this issue, post findings as a comment, remove this label. |
+| `flow/pr-review` | Human or maintainer | Agent: review this PR, post findings as a comment, remove this label. |
+| `flow/agent-donation` | Human | Agent: donate time to this repo, issue, or PR as described in the linked item. |
+| `flow/project-report` | Human or maintainer | Agent: produce a sourced project status report, remove this label. |
 
 ### Special and automation labels
 
@@ -309,23 +330,30 @@ Applied to issues to request a specific agent workflow:
 |---|---|
 | `ai-context` | ACMM audit finding — AI/LLM context gap that improves agent reliability org-wide |
 | `stale` | No recent activity; will auto-close unless updated |
+| `stale-digest` | Filed against an outdated image digest — may not reproduce on current build |
 | `needs-human/agent-oops` | Agent error — do not re-run automation; fix manually then re-queue |
 | `dependencies` | Renovate dependency update PR. Automerges on CI pass; only major bumps need review. |
 
 ---
 
-## What automation does (do not set these manually unless bonedigger is down)
+## What automation does
 
-| Trigger | What bonedigger does |
+All lifecycle automation runs from `projectbluefin/common/.github/workflows/lifecycle.yml`.
+Do not set these labels manually unless the workflow is down.
+
+| Trigger | What the lifecycle workflow does |
 |---|---|
-| Bug report opened | Adds `status/triage` |
-| Feature request opened | Adds `status/discussing` |
+| Issue opened | Adds `status/triage`, inserts pipeline widget in issue body |
+| `/approve` comment (write+) | **Guard:** checks for `kind/` + `area/`. Rejects with comment if missing. On pass: removes `status/triage`/`status/discussing`, adds `status/queued`, updates widget. |
+| `/claim` comment | Removes `status/queued`, adds `status/claimed`, assigns commenter, updates widget |
+| `/unclaim` comment | Removes `status/claimed`, re-adds `status/queued`, unassigns, updates widget |
+| `/wontfix [reason]` (write+) | Adds `kind/wontfix`, closes issue as not-planned, posts reason |
+| `/hold [reason]` (write+) | Adds `status/hold`, posts comment with reason |
+| `/unhold` (write+) | Removes `status/hold`, posts comment |
 | PR opened | Adds `pr/needs-review` |
-| `/approve` comment | Adds `status/approved` + `status/queued` |
-| `/claim` comment | Removes `status/queued`, adds `status/claimed`, assigns |
-| `/unclaim` comment | Removes `status/claimed`, re-adds `status/queued`, unassigns |
-| No PR activity in 7 days | Returns claim: removes `status/claimed`, re-adds `status/queued` *(target state — not fully consistent across all repos yet)* |
-| PR review submitted | Removes `pr/needs-review` |
+| Daily schedule | Stale sweep: any `status/claimed` issue with no activity for 7 days is returned to `status/queued` |
+
+**bonedigger** handles only: ujust report issue detection/parsing and priority auto-escalation from `ujust confirm` counts (3+ → `priority/p1`, 5+ → `priority/p0`).
 
 ---
 
@@ -346,27 +374,7 @@ Applied to issues to request a specific agent workflow:
 **I'm a maintainer and want to queue work for agents:**
 1. Find a triaged issue (has `kind/` and `area/` set)
 2. Comment `/approve`
-3. Done — bonedigger queues it automatically
+3. Done — automation queues it immediately
 
 **I need to stop automation from touching something:**
-→ Add `status/hold` and leave a comment explaining why
-
----
-
-## Migration status
-
-The following labels are in the process of being retired. They remain present in some repos
-while templates and automation are updated. **Do not use them for new issues.**
-
-| Retiring | Use instead | Blocker |
-|---|---|---|
-| `bug` (bare) | `kind/bug` | Template update needed in common |
-| `type/bug` | `kind/bug` | Template update needed in bluefin, bluefin-lts |
-| `type/feature` | `kind/enhancement` | Template update needed in bluefin, bluefin-lts |
-| `needs-human/agent-ready` | `status/queued` | Docs update needed |
-| `agent/claimed` | `status/claimed` | Verify no automation dependency |
-| `size:*` (colon variants) | `size/*` (slash variants) | Check automation consumers per repo |
-| `copilot-ready` | `status/queued` | Label cleanup only |
-| `hold` (bare) | `status/hold` | Verify automation consumers |
-
-Tracking issue: file one in `projectbluefin/common` with `kind/tech-debt` + `area/agent`.
+→ Comment `/hold` with a reason, or add `status/hold` manually

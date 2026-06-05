@@ -19,7 +19,8 @@ Labels are the handoff signal between the two.
 The lifecycle automation lives in **`projectbluefin/common/.github/workflows/lifecycle.yml`**
 and is called by every factory repo. Common owns:
 
-- Label definitions (`labels.json`) and cross-repo sync (`sync-labels.yml`)
+- Label definitions (`labels.json`, 67 labels) and cross-repo sync (`sync-labels.yml`)
+  > ⚠️ `sync-labels.yml` requires `MERGERAPTOR_APP_ID` + `MERGERAPTOR_PRIVATE_KEY` org secrets to push to downstream repos. See issue #511.
 - Slash commands (`/approve`, `/claim`, `/unclaim`, `/wontfix`, `/hold`, `/unhold`)
 - Issue widget (the pipeline status block embedded in each issue body)
 - Label guard (blocks `/approve` if `kind/` or `area/` is missing)
@@ -333,6 +334,22 @@ Applied to issues or PRs to request a specific agent workflow. The agent removes
 | `stale-digest` | Filed against an outdated image digest — may not reproduce on current build |
 | `needs-human/agent-oops` | Agent error — do not re-run automation; fix manually then re-queue |
 | `dependencies` | Renovate dependency update PR. Automerges on CI pass; only major bumps need review. |
+
+### Hardware test labels
+
+Used on issues in `projectbluefin/common` filed via the **Hardware test report** template.
+See [`docs/hardware-testing.md`](../hardware-testing.md) for the full process.
+
+| Label | Who sets it | Meaning |
+|---|---|---|
+| `hardware/test-report` | Issue template (auto) | Community hardware test report — needs triage |
+| `hardware/all-clear` | Maintainer after triage | Real-device evidence of a clean run — supports promotion |
+| `hardware/blocker` | Maintainer after triage | Hardware regression — **blocks image promotion** until resolved |
+
+```bash
+# Find open hardware blockers before promoting
+gh search issues --label "hardware/blocker" --owner projectbluefin --state open
+```
 
 ---
 

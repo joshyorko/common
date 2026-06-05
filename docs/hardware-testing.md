@@ -53,9 +53,10 @@ A short pstore snippet, kdump backtrace, or gist link is enough to connect a rep
 
 ## Factory integration
 
-`common` already uses bonedigger for issue lifecycle automation. Hardware test reports enter the same queue and become promotion input once triaged.
+Hardware test reports enter the factory lifecycle queue and become promotion input once triaged.
 
-- Bonedigger workflow: [`.github/workflows/bonedigger.yml`](../.github/workflows/bonedigger.yml)
-- Lifecycle background: [`docs/skills/governance.md`](./skills/governance.md#lifecycle-automation-bonedigger)
+- Lifecycle: [`docs/skills/label-workflow.md`](./skills/label-workflow.md)
+- Lifecycle workflow: [`.github/workflows/lifecycle.yml`](../.github/workflows/lifecycle.yml)
+- Lifecycle background: [`docs/skills/governance.md`](./skills/governance.md)
 
 Real hardware testing does not replace CI. It closes the visibility gap for bug classes that CI running in VMs cannot see.

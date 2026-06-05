@@ -53,6 +53,8 @@ triage permissions.
 - Skips repos where the block is already identical (no noise commits)
 - Uses **mergeraptor** (`MERGERAPTOR_APP_ID` / `MERGERAPTOR_PRIVATE_KEY` org secrets) for cross-repo writes
 
+> ⚠️ **Secret required:** Both `sync-codeowners.yml` and `sync-labels.yml` need `MERGERAPTOR_APP_ID` and `MERGERAPTOR_PRIVATE_KEY` set as org or repo secrets. Without them the workflows will fail. See issue #511 for tracking.
+
 Force a resync anytime:
 ```bash
 gh workflow run sync-codeowners.yml --repo projectbluefin/common

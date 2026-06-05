@@ -21,16 +21,21 @@ factory** — must be the first thing any agent reads. `common` is the org brain
 
 **Progress since Level 1 assessment began (2026-06-04):**
 - 10+ blindspots documented and cross-linked to issues
-- 7 ✅ cells gained in one day of focused parity work
+- 12+ ✅ cells gained across two days of focused parity work
 - Pre-merge e2e for `common` now active (was disabled)
 - Dakota fully onboarded (pre-commit, no-floating-tags, bonedigger)
 - `bluefin-lts` post-merge e2e now active
+- `testsuite` skill-drift advisory gate added (PR#380)
+- `bluefin-lts` Renovate config now explicit (PR#67)
+- `bonedigger @main` intentional-pin clarified in both `bluefin-lts` and `dakota`
+- `actions` consumer contract validation added (PR#83)
+- BS-1.21 promoted to full blindspot entry
 
 **Remaining blockers to Level 2:**
-- Nightly CI desensitization (LTS + GDX suites persistently red)
-- Installability gate not wired before `testing → stable`
-- Migration test not auto-triggered (queue/hold)
-- Lifecycle bot parity: `bonedigger` SHA-pin inconsistent across org
+- Nightly CI desensitization (LTS + GDX suites persistently red) — human blocked
+- Installability gate not wired before `testing → stable` — human blocked (#423)
+- Migration test not auto-triggered (queue/hold) — human blocked (testsuite#232)
+- Lifecycle bot parity: `bonedigger` SHA-pin inconsistent across org — intentional, documented
 
 ---
 
@@ -204,19 +209,21 @@ adding overrides.
 |---|---|---|---|---|---|---|
 | AGENTS.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | pre-commit | ✅ | ✅ | ✅ | ✅ | — | — |
-| skill-drift.yml | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| skill-drift.yml | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ PR#380 |
 | no-floating-action-tags | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | bonedigger lifecycle | ✅ | ✅ | ✅ | ✅ | — | — |
-| bonedigger SHA-pinned | ✅ | ✅ | ❌ (@main) | ❌ (@main) | — | — |
-| Renovate config | ✅ | ✅ | ❓ org-inherited | ❌ | ✅ | ✅ |
+| bonedigger SHA-pinned | ✅ | ✅ | ⚠️ @main intentional¹ | ⚠️ @main intentional¹ | — | — |
+| Renovate config | ✅ | ✅ | ✅ PR#67 | ❌ | ✅ | ✅ |
 | Post-merge e2e | ✅ | ✅ | ✅ | partial | — | — |
-| Pre-merge e2e | ✅ (common suite) | ✅ (pr-smoke) | ❌ | ❌ | — | — |
+| Pre-merge e2e | ✅ (common suite) | ✅ (pr-smoke) | ✅ (pr-testsuite smoke) | ❌ | — | — |
 | Installability gate | ⚠️ smoke/common only | ❌ | ❌ | ❌ | — | ❌ |
 | 2-human production gate | ✅ | ✅ | ✅ | ✅ | — | — |
 | CODEOWNERS active | ✅ | ✅ | ✅ | ✅ | — | — |
 | docs/skills/ populated | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Migration-test auto-trigger | — | — | — | — | — | ❌ (queue/hold) |
-| Consumer contract verified | — | — | — | — | ❌ | — |
+| Consumer contract verified | — | — | — | — | ✅ PR#83 | — |
+
+¹ `bonedigger` has no versioned releases; `@main` is intentional. Inline comments added to both repos — do not pin to SHA without maintainer coordination.
 
 ---
 
@@ -233,10 +240,5 @@ Items below are open. When an item is fixed, delete it from this list.
 | P1 | [#424](https://github.com/projectbluefin/common/issues/424) | common | bonedigger crash/panic → promotion gate | promotion quality |
 | P1 | [#420](https://github.com/projectbluefin/common/issues/420) | common | regression contract definition | stream parity |
 | P1 | [#423](https://github.com/projectbluefin/common/issues/423) | common | installability gate | promotion quality |
-| P1 | [#425](https://github.com/projectbluefin/common/issues/425) | common | lts full e2e gate | testing quality |
-| P2 | bluefin-lts, dakota | bonedigger @main exemption comments | agent confusion |
-| P2 | testsuite | add skill-drift.yml | doc parity |
-| P2 | bluefin-lts | add renovate.json | config transparency |
-| P2 | actions | consumer contract machine test | aurora/bazzite safety |
 | P2 | [#404](https://github.com/projectbluefin/common/issues/404) | org-wide | infra parity epic | agent reliability |
 | P2 | [#405](https://github.com/projectbluefin/common/issues/405) | org-wide | QA epic | quality gates |

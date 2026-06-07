@@ -165,6 +165,9 @@ The three image repos (bluefin, bluefin-lts, dakota) currently use inconsistent 
 | — | bluefin-lts | `renovate-automerge.yml` missing `--base main` filter | ✅ Fixed 2026-06-07 (bluefin-lts PR #114) |
 | — | bluefin-lts | `pr-e2e-smoke.yml` ran on all PRs including CI-only changes | ✅ Fixed 2026-06-07 (bluefin-lts PR #115) |
 | — | dakota | `weekly-testing-promotion.yml` used inline `curl` cosign install | ✅ Fixed 2026-06-07 (dakota PR #730) |
+| — | bluefin, bluefin-lts | Duplicate `generate-release.yml` (local SBOM+release-card) vs `reusable-release.yml` in actions | ✅ Fixed 2026-06-07 (bluefin PR #438, bluefin-lts PR #118) |
+| — | bluefin-lts | `scheduled-lts-release.yml` used fragile dispatch+poll (`gh workflow run` → sleep → `gh run list` poll → `gh run watch`) | ✅ Fixed 2026-06-07 (bluefin-lts PR #118 — replaced with `workflow_call` to `reusable-release.yml`) |
+| — | bluefin, bluefin-lts, dakota | Local `renovate.yml` duplicated runner logic; `renovate-automerge.yml` duplicated PR-lookup+merge logic | ✅ Fixed 2026-06-07 (all three repos PR merged — call `reusable-renovate.yml` + `reusable-renovate-automerge.yml` from actions) |
 
 **⚠️ bluefin-lts PR #73 (`feat/shared-workflow-migration`)** is pending review and rewrites the LTS build workflows + renames all LTS images. Do not implement #517 until #73 merges.
 
@@ -176,3 +179,61 @@ The three image repos (bluefin, bluefin-lts, dakota) currently use inconsistent 
 | E2E gates | [e2e-ci.md](e2e-ci.md) |
 | Promotion gates (QA model) | [../qa/PROMOTION_GATES.md](../qa/PROMOTION_GATES.md) |
 | Supply chain tooling (shared) | [projectbluefin/actions#86](https://github.com/projectbluefin/actions/issues/86) |
+
+---
+
+## Reusable workflow patterns (actions v1)
+
+All image repos now delegate to shared reusables in `projectbluefin/actions`. Pin to the v1 SHA.
+
+### Release generation — `reusable-release.yml`
+
+Supports two SBOM modes:
+
+| Mode | When to use | Key inputs |
+|---|---|---|
+| **Artifact mode** (default) | Build pipeline uploads a SBOM artifact (e.g. `reusable-build.yml` runs with `stream_name: stable`) | `build_workflow`, `build_branch`, `sbom_artifact` |
+| **Inline mode** | No SBOM artifact (promote-from-testing weekly path, LTS weekly path) | `generate_sbom_inline: true`, `syft_version` (default v1.44.0) |
+
+Use `checkout_ref` when the caller runs on `main` but the release should reflect a different branch (e.g. `checkout_ref: lts` for bluefin-lts).
+
+**Critical**: `reusable-release.yml` always has `environment: production` on the `image-release` job — this is the R3 human gate. Do NOT remove it.
+
+### Renovate runner — `reusable-renovate.yml`
+
+Image repos keep their own `schedule`/`workflow_dispatch` wrapper and delegate the job:
+
+```yaml
+jobs:
+  renovate:
+    uses: projectbluefin/actions/.github/workflows/reusable-renovate.yml@<sha> # v1
+    with:
+      dry_run: ${{ inputs.dry_run == true }}
+    secrets:
+      renovate_token: ${{ secrets.RENOVATE_TOKEN }}
+```
+
+`persist-credentials: false` is enforced in the reusable — callers do not need to set it.
+
+### Renovate auto-merge — `reusable-renovate-automerge.yml`
+
+Image repos keep their `workflow_run` trigger (must reference the repo-specific CI workflow name) and delegate the PR lookup + squash-merge:
+
+```yaml
+on:
+  workflow_run:
+    workflows: ["<repo-specific CI workflow name>"]
+    types: [completed]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  automerge:
+    if: github.event.workflow_run.conclusion == 'success'
+    uses: projectbluefin/actions/.github/workflows/reusable-renovate-automerge.yml@<sha> # v1
+    with:
+      head_sha: ${{ github.event.workflow_run.head_sha }}
+      # base_branch defaults to 'testing' — override only if needed
+```
+
+The `workflow_run` trigger CANNOT be in a reusable workflow — it must stay in the caller. Only the job logic is centralised.

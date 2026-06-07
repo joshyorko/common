@@ -176,7 +176,7 @@ The bluefin-ci skill listed old/wrong workflow names. Correct list for bluefin-l
 
 **What:** `generate-release.yml` fails at "Generate Release Text" with:
 ```
-RuntimeError: No SBOM referrer found for ghcr.io/ublue-os/<image>@sha256:...
+RuntimeError: No SBOM referrer found for ghcr.io/projectbluefin/<image>@sha256:...
 ```
 
 **Why:** `changelogs.py` fetches SBOMs for both the current and previous stable tags to build a package diff. Tags built before SBOM attachment was added to the pipeline have no SBOM referrer, causing a hard failure.
@@ -190,13 +190,13 @@ RuntimeError: No SBOM referrer found for ghcr.io/ublue-os/<image>@sha256:...
 **How to manually retrigger the stable release:**
 ```bash
 gh workflow run generate-release.yml \
-  --repo ublue-os/bluefin \
+  --repo projectbluefin/bluefin \
   --ref <branch-with-fix> \
   --field stream_name='["stable"]'
 ```
-Watch: `gh run watch <RUN_ID> --repo ublue-os/bluefin`
+Watch: `gh run watch <RUN_ID> --repo projectbluefin/bluefin`
 
-**Note:** The `generate-release.yml` workflow creates a real GitHub release when triggered via `workflow_dispatch` for the "stable" stream. Confirm the release was created with `gh release list --repo ublue-os/bluefin`.
+**Note:** The `generate-release.yml` workflow creates a real GitHub release when triggered via `workflow_dispatch` for the "stable" stream. Confirm the release was created with `gh release list --repo projectbluefin/bluefin`.
 
 ### dakota publish pipeline — e2e gates :latest (added 2026-05-30)
 

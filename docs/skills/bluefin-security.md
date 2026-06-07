@@ -57,10 +57,10 @@ Validate after any change: `bash -n build_files/base/04-packages.sh`
 All production images are signed with cosign:
 ```bash
 # Verify an image
-just verify-container IMAGE ghcr.io/ublue-os cosign.pub
+just verify-container IMAGE ghcr.io/projectbluefin cosign.pub
 
 # Manual cosign verify
-cosign verify --key cosign.pub ghcr.io/ublue-os/IMAGE:TAG
+cosign verify --key cosign.pub ghcr.io/projectbluefin/IMAGE:TAG
 ```
 
 ## Secureboot

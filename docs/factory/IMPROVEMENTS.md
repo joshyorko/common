@@ -44,15 +44,13 @@ ujust report            picks up queued issues
 
 ---
 
-## Org Structure: ublue-os → projectbluefin
+## Org Structure: ublue-os → projectbluefin (complete)
 
 **Before:** Bluefin lived inside `ublue-os`, a shared org with many other projects. There was no clean boundary between Bluefin-specific automation and shared ublue-os infrastructure.
 
-**After:** The `projectbluefin` org owns all Bluefin image repos, automation, CI, and tooling. The `ublue-os` org is now upstream-only: production images are still published to `ghcr.io/ublue-os/bluefin*` (registry migration pending), but all development work and automation happens in `projectbluefin`.
+**After:** The `projectbluefin` org owns all Bluefin image repos, automation, CI, and tooling — including the production image registry at `ghcr.io/projectbluefin/`. The migration is complete. `projectbluefin` is fully standalone.
 
-**Why:** Clean ownership boundaries. The org split lets Bluefin evolve its CI, lifecycle automation, and agentic model independently without coordinating with the broader ublue-os ecosystem on every change. It also enables org-level secrets, project boards, and access controls specific to the Bluefin factory.
-
-**Current state:** `ghcr.io/ublue-os/bluefin*` is still the production image registry. See [`docs/skills/image-registry.md`](../skills/image-registry.md).
+**Why:** Clean ownership boundaries. The org split lets Bluefin evolve its CI, lifecycle automation, and agentic model independently. It also enables org-level secrets, project boards, and access controls specific to the Bluefin factory.
 
 ---
 

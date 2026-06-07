@@ -28,7 +28,7 @@ IMAGE_VENDOR="$(jq -r '."image-vendor"' < /usr/share/ublue-os/image-info.json)"
 IMAGE_REGISTRY="ghcr.io/${IMAGE_VENDOR}"
 ```
 
-`image-vendor` is set during the build via `00-image-info.sh`. Do not hardcode `ghcr.io/ublue-os` or `ghcr.io/projectbluefin` here — it must remain dynamic until the org migration is complete.
+`image-vendor` is set during the build via `00-image-info.sh`. Do not hardcode the registry path here — read it dynamically from `image-info.json`.
 
 ## LTS vs non-LTS branch semantics
 

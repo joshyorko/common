@@ -55,8 +55,7 @@ Changes to these paths require maintainer review before merge:
 
 **NEVER create issues, PRs, comments, forks, automated reports, webhook calls, or any programmatic write action targeting any `ublue-os/*` repository.**
 
-- `ghcr.io/ublue-os` registry **reads** are fine — production images still published there
-- Read-only `gh api` calls to inspect `ublue-os` repos are fine
+- Read-only `gh api` calls to inspect `ublue-os` repos are permitted
 - Everything else → **BANNED** without exception
 - If a task requires `ublue-os` write access → **stop and tell the human to report it manually**
 

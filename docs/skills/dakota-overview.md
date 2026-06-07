@@ -37,7 +37,7 @@ Load with: `cat ~/src/skills/dakota-overview/SKILL.md`
 - Do not reintroduce skopeo, `--compression-format=zstd:chunked`, or any oci-dir workaround for post-chunkah pushes. Read issue #119 before asserting anything about push compression.
 
 **`rechunker-group-fix` is intentionally absent from dakota.**
-- `common/system_files/shared/` ships `rechunker-group-fix` (script + service + preset) to fix gshadow corruption for users migrating from legacy ublue-os/rechunk images to chunkah-based images.
+- `common/system_files/shared/` ships `rechunker-group-fix` (script + service + preset) to fix gshadow corruption for users migrating from legacy rechunk-based images to chunkah-based images.
 - Dakota users are never on legacy-rechunk images. `elements/bluefin/common.bst` explicitly strips these three files after copying from common.
 - Do not add them back. Do not add a "disable" preset. The files must not exist in the dakota image.
 

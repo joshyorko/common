@@ -12,8 +12,8 @@ description: "Pre/post-merge E2E CI for common — composed PR gate, testing-str
 - Runs after merges to `main`
 - Calls the local `.github/workflows/run-testsuite.yml` wrapper, which centralizes the pinned `projectbluefin/testsuite` SHA
 - Validates the common layer against three downstream images:
-  - `ghcr.io/ublue-os/bluefin:latest`
-  - `ghcr.io/ublue-os/bluefin:lts`
+  - `ghcr.io/projectbluefin/bluefin:latest`
+  - `ghcr.io/projectbluefin/bluefin:lts`
   - `ghcr.io/projectbluefin/dakota:latest`
 - Uses SSH-mode tests from the runner, so the common suite does not require a full GNOME session
 
@@ -23,7 +23,7 @@ description: "Pre/post-merge E2E CI for common — composed PR gate, testing-str
 
 - Runs on PRs to `main` and on `merge_group`
 - Builds the PR's `common` layer candidate first
-- Composes a downstream test image from `ghcr.io/ublue-os/bluefin:latest` by overlaying `/system_files/shared` and `/system_files/bluefin`
+- Composes a downstream test image from `ghcr.io/projectbluefin/bluefin:latest` by overlaying `/system_files/shared` and `/system_files/bluefin`
 - Recompiles GSettings schemas in the composed image
 - Pushes the composed image to GHCR and runs the local testsuite wrapper with `suites: common`
 

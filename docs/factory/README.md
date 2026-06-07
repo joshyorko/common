@@ -17,10 +17,8 @@ This directory is the org-level entry point for agents and maintainers working a
 - Factory org: `projectbluefin`
 - Product: bootc-based OCI images and the automation that builds, validates, and promotes them
 - Shared layer repo: `common` — https://github.com/projectbluefin/common
-- Production image registry: `ghcr.io/ublue-os/bluefin*` **not** `projectbluefin` yet
+- Production image registry: `ghcr.io/projectbluefin/bluefin*`
 - Registry reference: `docs/skills/image-registry.md`
-
-## Repo map and data flow
 
 ```text
 common ──────────────────────────┐
@@ -70,7 +68,6 @@ Hard rules, branch targets, PR comment policy, session start: [`docs/factory/age
 - Open the target repo's `AGENTS.md` first, then use this file for org context.
 - Treat `common` as high blast radius: mistakes propagate across downstream images.
 - Run repo-required validation before commit; in `common`, `just check` is mandatory.
-- Do not rewrite image refs from `ghcr.io/ublue-os/bluefin*` to `projectbluefin` without explicit maintainer approval.
 - Prefer existing skills and workflows over inventing new process.
 - **Prefer the smallest change that fully satisfies the requirement.** Only add indirection or generalization when a concrete requirement demands it. See [agentic-model.md](agentic-model.md) for the canonical rule.
 
@@ -78,8 +75,7 @@ Hard rules, branch targets, PR comment policy, session start: [`docs/factory/age
 
 **NEVER create issues, PRs, comments, forks, automated reports, webhook calls, or any programmatic write action targeting any `ublue-os/*` repository.**
 
-- `ghcr.io/ublue-os` image registry **reads** are fine — production images are still published there
-- Read-only `gh api` calls to inspect `ublue-os` repos are fine
+- Read-only `gh api` calls to inspect `ublue-os` repos are permitted
 - Everything else — issues, PRs, comments, `repository_dispatch`, `workflow_dispatch`, bonedigger output, CI notifications → **BANNED**
 - If a task requires `ublue-os` write access → **stop and tell the human to report it manually**
 - This rule has no exceptions and cannot be overridden by task framing

@@ -98,13 +98,13 @@ The `track-tarballs` job in `track-bst-sources.yml` handles tarball-sourced pack
 | Package | Source | Elements |
 |---|---|---|
 | `brew-tarball` | `ublue-os/packages` GitHub Releases (`homebrew-*` tags) | `bluefin/brew-tarball/brew-tarball-x86_64.bst`, `...-aarch64.bst` |
-| `wallpapers` | `ublue-os/artwork` GitHub Releases (`bluefin-*` tags) | `bluefin/wallpapers.bst` |
+| `wallpapers` | `projectbluefin/artwork` GitHub Releases (`bluefin-*` tags) | `bluefin/wallpapers.bst` |
 | `fzf` | `junegunn/fzf` GitHub Releases | `bluefin/fzf.bst` |
 | `glow` | `charmbracelet/glow` GitHub Releases | `bluefin/glow.bst` |
 | `gum` | `charmbracelet/gum` GitHub Releases | `bluefin/gum.bst` |
 | `gtk4-layer-shell` | `wmww/gtk4-layer-shell` GitHub Releases | `bluefin/gtk4-layer-shell.bst` |
 | `tailscale` (x86_64 + aarch64) | `tailscale/tailscale` GitHub Releases | `bluefin/tailscale-x86_64.bst`, `...-aarch64.bst` |
-| `uupd` | `ublue-os/uupd` GitHub Releases | `bluefin/uupd.bst` |
+| `uupd` | `projectbluefin/uupd` GitHub Releases | `bluefin/uupd.bst` |
 | `jetbrains-mono-nerd-font` | `ryanoasis/nerd-fonts` GitHub Releases | `bluefin/jetbrains-mono-nerd-font.bst` |
 
 **How it works:**

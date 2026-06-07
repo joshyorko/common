@@ -8,25 +8,6 @@ description: "Verified setup commands, correct pip/npm flags, and PR branch targ
 Verified correct setup commands for projectbluefin repos. Use these when writing
 contributor docs or guiding new contributors — don't guess from memory.
 
-## ⚠️ CRITICAL: ublue-os vs projectbluefin image registry
-
-**`ghcr.io/ublue-os/bluefin` is still the active production image registry.**
-
-The `projectbluefin` GitHub org exists and holds source repos, but **OCI images
-are still published under `ghcr.io/ublue-os/`**. The migration to
-`ghcr.io/projectbluefin/` has NOT happened yet.
-
-**Consequences for agents:**
-- Do NOT replace `ghcr.io/ublue-os/bluefin` with `ghcr.io/projectbluefin/bluefin` in any docs or scripts — the projectbluefin image path does not serve production images.
-- Do NOT change `bootc switch ghcr.io/ublue-os/...` commands — users running them would pull from a non-existent or wrong registry.
-- Do NOT flag `ghcr.io/ublue-os/bluefin` refs as "stale" in docs or READMEs — they are correct.
-- The hive guide/scanner agents may flag these as stale org refs. **They are not.** Verify against this skill before acting on such advisories.
-- Do NOT touch `projectbluefin/documentation` (docs.projectbluefin.io) for ublue-os image ref "fixes" — that site is production and its refs are intentionally `ublue-os` until migration completes.
-
-**What IS legitimately `projectbluefin` org (GitHub repos, not registry):**
-- `github.com/projectbluefin/bluefin`, `github.com/projectbluefin/common`, etc.
-- Source code lives in `projectbluefin`; published images still live in `ublue-os`.
-
 ## documentation (docs.projectbluefin.io)
 
 ```bash

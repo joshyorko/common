@@ -220,7 +220,7 @@ just clean
 |---|---|---|
 | `bluefin` | gts, stable, latest, beta | main, nvidia-open |
 
-> **⛔ `bluefin-dx` image:** Dead SKU. The `ublue-os/bluefin-dx` image still exists in the registry but is unmaintained. **Do not build or recommend it.** DX features are now a userspace component installed on top of any Bluefin image, not a separate OCI image. GDX (`bluefin-gdx`) is the special LTS+NVIDIA SKU — it is not "DX on LTS", it is a distinct product.
+> **⛔ `bluefin-dx` image:** Dead SKU. The old `bluefin-dx` image is unmaintained. **Do not build or recommend it.** DX features are now a userspace component installed on top of any Bluefin image, not a separate OCI image. GDX (`bluefin-gdx`) is the special LTS+NVIDIA SKU — it is not "DX on LTS", it is a distinct product.
 
 ## Output
 
@@ -236,17 +236,11 @@ After `gh pr create`:
 - `just check` fails on `.devcontainer.json` — expected, ignore it
 - Build fails with disk space error — run `just clean` first
 - `pre-commit` hook fails — run `just fix` then retry
-- **GHA workflow `startup_failure` with zero jobs and no log output** — likely an org-only permission scope in the `permissions:` block. `artifact-metadata: write` is org-only and will cause silent `startup_failure` on any `castrojo/*` personal fork. **Do not bisect** — personal forks cannot validate org-only features. Instead: remove the scope from the fork copy, cite a working `ublue-os/aurora` workflow as proof, and submit upstream retaining the scope. *(observed: 2026-03-30, copilot-config issue 147)*
+- **GHA workflow `startup_failure` with zero jobs and no log output** — likely an org-only permission scope in the `permissions:` block. `artifact-metadata: write` is org-only and will cause silent `startup_failure` on any `castrojo/*` personal fork. **Do not bisect** — personal forks cannot validate org-only features. Instead: remove the scope from the fork copy, and submit upstream retaining the scope. *(observed: 2026-03-30, copilot-config issue 147)*
 
 ## Aurora is the Reference Implementation
 
-When making any Justfile changes to bluefin, **check Aurora's Justfile first**:
-
-```bash
-curl -s https://raw.githubusercontent.com/ublue-os/aurora/main/Justfile | grep -A 20 "recipe-name"
-```
-
-Or fetch the full file: `https://raw.githubusercontent.com/ublue-os/aurora/main/Justfile`
+When making any Justfile changes to bluefin, **check Aurora's Justfile first** at `https://github.com/ublue-os/aurora/blob/main/Justfile`.
 
 **Rules:**
 - Aurora and Bluefin share the same Justfile structure. Aurora changes (especially from maintainer renner0e) should be mirrored in Bluefin unless there is an explicit Bluefin-specific reason not to.
@@ -295,7 +289,7 @@ After editing any `.just` file: run `just fix` (auto-formats) then `just check` 
 
 **DO NOT** build a full bluefin image from RPMs to test common changes. common is pure file overlays (gschema, just scripts, dconf, env) — no RPMs come from it.
 
-**Policy:** overlay common ctx onto `ghcr.io/ublue-os/bluefin:stable`, BIB to disk, swap titan.
+**Policy:** overlay common ctx onto `ghcr.io/projectbluefin/bluefin:stable`, BIB to disk, swap titan.
 
 Canonical script: `~/common-test-build.sh` on ghost (also at `/tmp/build-lab.sh`)
 
@@ -303,7 +297,7 @@ Canonical script: `~/common-test-build.sh` on ghost (also at `/tmp/build-lab.sh`
 # Run on ghost — full pipeline ~3 min
 bash ~/common-test-build.sh fix/my-branch
 # Optional: specify base image
-bash ~/common-test-build.sh fix/my-branch ghcr.io/ublue-os/bluefin:stable
+bash ~/common-test-build.sh fix/my-branch ghcr.io/projectbluefin/bluefin:stable
 ```
 
 **Pipeline steps:**

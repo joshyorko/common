@@ -41,7 +41,7 @@ Run safety check first: `bash /mnt/skills/user/bluefin-iso/scripts/promote-iso.s
 
 ## How It Works
 
-1. Container images built → pushed to `ghcr.io/ublue-os`
+1. Container images built → pushed to `ghcr.io/projectbluefin`
 2. Variant workflows call reusable build logic using Titanoboa + Anaconda
 3. ISOs uploaded to R2 testing bucket
 4. Per-run torrent artifacts produce a prerelease
@@ -68,7 +68,7 @@ promote-iso.sh prints status, enforces LTS safety rules, and blocks unsafe invoc
 
 ## Troubleshooting
 
-- Build fails: check `ghcr.io/ublue-os` image exists for the target tag/flavor
+- Build fails: check `ghcr.io/projectbluefin` image exists for the target tag/flavor
 - Anaconda errors: known issue with LTS base — do not attempt to fix without deep investigation
 - R2 access: requires CloudFlare credentials in GitHub secrets
 
@@ -77,7 +77,7 @@ promote-iso.sh prints status, enforces LTS safety rules, and blocks unsafe invoc
 ### ublue-flatpak-manager.service removed from image (2026-05-11)
 
 `ublue-flatpak-manager.service` no longer exists in the Bluefin image or anywhere
-in the ublue-os ecosystem (`ublue-os/packages`, `ublue-os/main`,
+in the projectbluefin ecosystem (`projectbluefin/packages`,
 `projectbluefin/common` — all checked). `systemctl --global disable` exits
 non-zero on a missing unit, aborting `hook-post-rootfs` under `set -eoux pipefail`.
 

@@ -19,7 +19,7 @@ Load with: `cat ~/src/skills/bluefin-variants/SKILL.md`
 - Deciding which image/tag/flavor combination to build or reference
 - Explaining Bluefin variants to others (users, contributors)
 - Understanding which Fedora version maps to which stream tag
-- Identifying the correct OCI image path on `ghcr.io/ublue-os`
+- Identifying the correct OCI image path on `ghcr.io/projectbluefin`
 
 ## When NOT to Use
 
@@ -34,7 +34,7 @@ Bluefin produces images as a matrix of three dimensions. The Justfile encodes th
 
 ## DX / GDX Branding — Critical Distinction
 
-> **⛔ `bluefin-dx` as a separate OCI image is a dead SKU.** The old `ghcr.io/ublue-os/bluefin-dx` image (in the `ublue-os/` org) still exists in the registry but is **not maintained** and must not be recommended to users.
+> **⛔ `bluefin-dx` as a separate OCI image is a dead SKU.** The old `ghcr.io/projectbluefin/bluefin-dx` image still exists in the registry but is **not maintained** and must not be recommended to users.
 
 **DX is now a userspace component, not an image.**
 - Developer experience features (dev containers, tooling) are installed on top of any standard Bluefin image at the userspace layer — they are **not baked into a separate OCI image**.
@@ -79,9 +79,9 @@ Tags:    gts, stable, latest, beta
 ## OCI Registry
 
 ```
-ghcr.io/ublue-os/bluefin:TAG-FLAVOR
-ghcr.io/ublue-os/bluefin:stable-main
-ghcr.io/ublue-os/bluefin:latest-nvidia-open
+ghcr.io/projectbluefin/bluefin:TAG-FLAVOR
+ghcr.io/projectbluefin/bluefin:stable-main
+ghcr.io/projectbluefin/bluefin:latest-nvidia-open
 ```
 
 ## Related Repos

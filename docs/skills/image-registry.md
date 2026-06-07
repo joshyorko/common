@@ -1,74 +1,29 @@
 ---
 name: image-registry
-description: "ublue-os vs projectbluefin OCI publishing split — production images still at ghcr.io/ublue-os, not projectbluefin."
+description: "projectbluefin OCI image registry reference — all production images published at ghcr.io/projectbluefin/. Use when looking up image paths, tags, or registry structure."
 ---
 
-# Image Registry — ublue-os vs projectbluefin
+# Image Registry
 
-## Critical: the org migration is incomplete for OCI images
+All Bluefin images are published to `ghcr.io/projectbluefin/`. The org migration from `ublue-os` is complete — `projectbluefin` is fully standalone.
 
-Production Bluefin images are **still published at `ghcr.io/ublue-os/`**, not
-`ghcr.io/projectbluefin/`. The org migration for OCI image publishing has not happened.
-
-**Do NOT change `ublue-os` to `projectbluefin` in image references without explicit maintainer
-sign-off.** This would break OTA updates, E2E CI, and the rollback helper for all users.
-
-## Reference table
+## Registry paths
 
 | Registry path | Status | Notes |
 |---|---|---|
-| `ghcr.io/ublue-os/bluefin*` | ✅ Active production | All Bluefin image variants |
-| `ghcr.io/ublue-os/bluefin:lts` | ✅ Active production | LTS stream |
-| `ghcr.io/projectbluefin/bluefin:testing` | ✅ Active testing | Bluefin testing candidate tag |
-| `ghcr.io/projectbluefin/bluefin:lts-testing` | ⚠️ Pending rename | Bluefin LTS testing candidate tag — being renamed by bluefin-lts PR #73 (see below) |
-| `ghcr.io/ublue-os/brew` | ✅ Active | Homebrew layer consumed by bluefin |
-| `ghcr.io/ublue-os/akmods-*` | ✅ Active | Kernel modules |
-| `ghcr.io/projectbluefin/common` | ✅ Active | Common shared layer (this repo) |
+| `ghcr.io/projectbluefin/bluefin:stable` | ✅ Production | Main Bluefin stable stream |
+| `ghcr.io/projectbluefin/bluefin:latest` | ✅ Production | Main Bluefin latest stream |
+| `ghcr.io/projectbluefin/bluefin:testing` | ✅ Testing | PR gate + E2E candidate |
+| `ghcr.io/projectbluefin/bluefin-lts:stable` | ✅ Production | LTS stream |
+| `ghcr.io/projectbluefin/bluefin-lts:testing` | ✅ Testing | LTS E2E candidate |
+| `ghcr.io/projectbluefin/common` | ✅ Active | Shared layer (this repo) |
 | `ghcr.io/projectbluefin/dakota` | ✅ Active | Dakota image |
 
-## Files where ublue-os image refs MUST remain ublue-os
-
-- `system_files/bluefin/usr/bin/ublue-rollback-helper` — reads `IMAGE_VENDOR` from
-  `image-info.json` to construct the registry path; changing the vendor changes the OTA target
-- Any ujust recipe that references the image registry for rollback/rebase
-
-## Allowed projectbluefin testing refs in CI workflows
-
-`validate.yml` maintains an explicit allowlist. The following workflow files are allowed to use `projectbluefin` testing-stream refs:
-
-| Workflow file | Allowed refs |
-|---|---|
-| `promotion-candidate-e2e.yml` | `ghcr.io/projectbluefin/bluefin:testing`, `ghcr.io/projectbluefin/bluefin:lts-testing` |
-| `e2e.yml` | `ghcr.io/projectbluefin/bluefin:testing`, `ghcr.io/projectbluefin/bluefin:lts-testing` |
-| `pr-e2e.yml` | `ghcr.io/projectbluefin/bluefin:testing` |
-
-These are testing-only candidate tags used for E2E gates. They are **not** production OTA targets. All other `ghcr.io/projectbluefin/bluefin*` refs in workflow files are blocked by `validate.yml`.
-
-## How ublue-rollback-helper uses the registry
+## How rollback-helper derives the registry path
 
 ```bash
-IMAGE_VENDOR="$(jq -r '."image-vendor"' < "$IMAGE_INFO")"
+IMAGE_VENDOR="$(jq -r '."image-vendor"' < /usr/share/ublue-os/image-info.json)"
 IMAGE_REGISTRY="ghcr.io/${IMAGE_VENDOR}"
 ```
 
-`image-info.json` is written at build time by `build_files/base/00-image-info.sh` in the
-bluefin repo. `IMAGE_VENDOR` is set from the `IMAGE_VENDOR` build arg (currently `projectbluefin`
-in bluefin's Justfile — but this sets the *metadata* vendor, not the *publishing* registry).
-The production publishing still goes to `ublue-os` org via the build workflow secrets.
-
-`validate.yml` includes a guard that fails if workflow files or `ublue-rollback-helper`
-reference `ghcr.io/projectbluefin/bluefin`, `aurora`, or `bazzite`.
-
-Tracked: #468
-
-## ⚠️ Pending: LTS image rename (bluefin-lts PR #73)
-
-`projectbluefin/bluefin-lts` PR #73 (`feat/shared-workflow-migration`) renames all LTS images from the legacy `bluefin:lts*` scheme to a per-variant scheme. When that PR merges:
-
-| Old tag | New tag |
-|---|---|
-| `ghcr.io/projectbluefin/bluefin:lts-testing` | `ghcr.io/projectbluefin/bluefin-lts:testing` |
-| `ghcr.io/projectbluefin/bluefin:lts-testing-hwe` | `ghcr.io/projectbluefin/bluefin-lts-hwe:testing` |
-| `ghcr.io/projectbluefin/bluefin:lts-testing` (gdx/nvidia) | `ghcr.io/projectbluefin/bluefin-gdx:testing` |
-
-**Do not build new CI steps targeting `bluefin:lts-testing`.** After PR #73 merges, update any doc or workflow that references the old tag. The following files still reference the old tag and will need a follow-up sweep: `promotion-candidate-e2e.yml` (common), `e2e.yml` (common), `acmm-audit-level1.md`, `acmm-audit-level2.md`, `workflow-map.md`, `e2e-ci.md`, `qa.md`, `bluefin-ci.md`, `PROMOTION_GATES.md`.
+`image-vendor` is set at build time via `00-image-info.sh`. The helper reads it dynamically — do not hardcode the registry path.

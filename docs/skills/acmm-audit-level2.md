@@ -78,10 +78,10 @@ An AI loaded with `common` or `bluefin` context will attempt `dnf5 install` in:
 
 #### CRB-2 · Registry namespace confusion
 
-Production images: `ghcr.io/ublue-os/bluefin*` (NOT `projectbluefin`)
+Production images: `ghcr.io/projectbluefin/bluefin*` (NOT `projectbluefin`)
 CI/testing images: `ghcr.io/projectbluefin/bluefin:testing`
 
-An AI seeing `projectbluefin` org context will "fix" image refs by replacing `ublue-os`.
+All image refs are now `ghcr.io/projectbluefin/` — the org migration is complete.
 This breaks e2e workflows, rollback-helper, and production paths.
 
 **Constraint:** Load `image-registry.md` before touching ANY image reference.
@@ -123,7 +123,7 @@ No automated test detects cache busting.
 
 #### BS-2.2 · `bluefin` git remote trap (carried from L1)
 
-`origin` → `ublue-os/bluefin`. Bare `git push` sends to wrong org.
+Bare `git push` from a cloned fork can send to the wrong repo — always use `gh pr create --repo projectbluefin/<repo>`.
 No pre-push hook. Has already happened.
 
 **Constraint:** Always `git push projectbluefin <branch>`. Never bare `git push`.
@@ -286,7 +286,7 @@ are caught by automated systems, not hoped-for by documentation.
 |---|---|---|
 | common | Changes to `system_files/shared/` must consider bluefin + lts + dakota impact | `submodule-boundary.md` |
 | common | dconf key + lock file must be edited together | `dconf-consistency.md` |
-| common | Image refs must stay `ghcr.io/ublue-os/` unless maintainer approves | `image-registry.md` |
+| common | Image refs must stay `ghcr.io/projectbluefin/` unless maintainer approves | `image-registry.md` |
 | common | CODEOWNERS TRIAGERS sentinel is load-bearing for sync workflow | `governance.md` |
 | bluefin | PRs target `testing`, never `main` | `bluefin-build.md` |
 | bluefin | Containerfile cache boundary between Stage 1/2 is intentional | `bluefin-build.md` |

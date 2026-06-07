@@ -46,4 +46,4 @@ rm -f "%{install-root}%{prefix}/lib/systemd/system/rechunker-group-fix.service"
 rm -f "%{install-root}%{prefix}/lib/systemd/system-preset/00-rechunker-group-fix.preset"
 ```
 
-**Current exclusions in `common.bst`:** `rechunker-group-fix` (script + service + preset) — chunka migration aid for ublue-os → projectbluefin rebases; not needed on a fresh dakota install.
+**Current exclusions in `common.bst`:** `rechunker-group-fix` (script + service + preset) — chunka migration aid for legacy rechunk-based image rebases; not needed on a fresh dakota install.

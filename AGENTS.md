@@ -55,9 +55,7 @@ This applies in every situation, without exception, regardless of task framing:
 
 If a task seems to require touching an upstream `ublue-os` repo → **stop and tell the human to report it manually.**
 
-**Allowed reads only:**
-- `ghcr.io/ublue-os` image registry pulls (CI, e2e, rollback helper)
-- `gh api` read-only calls to `ublue-os` repos (e.g., checking a release tag)
+Read-only `gh api` calls to inspect `ublue-os` repos are permitted. No writes of any kind.
 
 Violating this risks getting the projectbluefin organization banned from GitHub.
 

@@ -93,57 +93,65 @@ cosign verify-attestation \
   ghcr.io/projectbluefin/common:latest | jq .payload | base64 -d | jq .
 ```
 
-## Weekly gated release model
+## PR-based release model (current)
 
-As of 2026-06-06, all three image repos fire releases on **Tuesday at 06:00 UTC** and require maintainer approval before the release is created.
+As of 2026-06-09, all three image repos (bluefin, bluefin-lts, dakota) use a **PR-based squash promotion** model. There are no more scheduled release workflows.
 
-| Repo | Workflow | Gate |
-|---|---|---|
-| **bluefin** | `scheduled-stable-release.yml` | `production` environment — `@projectbluefin/maintainers` |
-| **bluefin-lts** | `scheduled-lts-release.yml` | `production` environment — `@projectbluefin/maintainers` |
-| **dakota** | `weekly-testing-promotion.yml` (calls `release.yml` as sub-workflow) | `production` environment — `@projectbluefin/maintainers` |
+### How it works
 
-### Verifying the environment gate is real
-
-`environment: production` in a workflow YAML is only effective if the GitHub environment has `required_reviewers` configured. To verify:
-
-```bash
-gh api repos/projectbluefin/{repo}/environments/production \
-  --jq '.protection_rules[] | select(.type=="required_reviewers") | .reviewers[].reviewer.slug'
+```
+testing branch builds (Renovate, feature PRs)
+       │
+       ▼ push to testing
+promote-testing-to-main.yml (daily + on push)
+       │
+       ├── creates/updates auto/promote-testing-to-main branch (squash of testing)
+       ├── opens or updates the promotion PR (testing → main)
+       ├── runs release gate checks (cosign verify, E2E)
+       └── attempts to enqueue PR in merge queue
+                │
+                ▼ maintainer approves → PR merges
+       execute-release.yml (on PR close)
+               │
+               ├── re-verifies cosign signatures
+               ├── promotes :testing digest to :stable (via skopeo copy)
+               └── calls reusable-release.yml for release notes + GitHub Release
 ```
 
-Expected output: `maintainers`. All three repos confirmed: `required_reviewers: maintainers` + `prevent_self_review: true` (verified 2026-06-07).
+### Schedule
 
-### Repo architecture differences (intentional)
+`promote-testing-to-main.yml` runs on three triggers:
+- Push to `testing` branch
+- Daily `cron: '0 23 * * *'` (refreshes promotion PR even with no testing activity)
+- `workflow_dispatch` (manual override)
 
-The three image repos use different promotion models by design — these are NOT inconsistencies:
+The daily heartbeat ensures the promotion PR stays fresh and gate checks are re-run.
 
-| Repo | Testing buffer | Renovate target | Branch model |
+### After merge: sync back
+
+`sync-main-to-testing.yml` fires on every push to `main` and merges `main` back into `testing` (using `reusable-sync-branches.yml` from `projectbluefin/actions`). This prevents `testing` from falling behind after the squash-merge, which would block the next promotion PR.
+
+### Repo variants
+
+| Repo | testing source | target tag | fast_forward_branch |
 |---|---|---|---|
-| bluefin | `testing` git branch (PRs must target it) | `testing` | testing → main → :stable |
-| bluefin-lts | No `testing` branch — main IS the integration branch | `main` | main → lts (promotion branch) → :lts |
-| dakota | No testing branch — BST tracks sources via `track-bst-sources.yml` | `main` (GHA only) | main builds → :testing tag → weekly promote to :stable |
+| bluefin | `testing` branch | `stable` | — |
+| bluefin-lts | `testing` branch | `lts` | `lts` |
+| dakota | `testing` OCI tag | `stable` | — |
 
-Bluefin-lts's `lts` branch is a promotion branch (like `stable`), not an equivalent of bluefin's `testing` buffer.
+**bluefin-lts** fast-forwards the `lts` branch to the squash merge commit after each promotion so that `lts` always points to the latest promoted content.
 
+**dakota** differs from bluefin/lts: rather than squashing git commits, `promote-testing-to-main.yml` resolves the current `:testing` OCI digest and writes it to `.github/release-state.yaml` on the promotion branch.
 
+### Known gap: dakota E2E disabled
 
-1. Schedule fires Tuesday 06:00 UTC → GitHub notifies `@projectbluefin/maintainers`
-2. Any maintainer clicks **Review deployments** in the Actions UI and approves
-3. The release job proceeds once approved (GitHub enforces this natively — no bot logic needed)
-4. `workflow_dispatch` is available on all three for out-of-band cuts
+Dakota's release gate runs with `run_e2e: false` because the dakota build machine is currently broken ([issue #497](https://github.com/projectbluefin/common/issues/497)). Re-enable by setting `run_e2e: true` in `dakota/.github/workflows/promote-testing-to-main.yml` once #497 is resolved.
 
-### Approval requirement
+### Approval
 
-GitHub Environment protection requires **any 1** reviewer from the listed team to approve (GitHub does not support a "require N" count natively for environments). In practice, social convention is 2 acks. If a stricter gate is needed, a two-stage environment chain (`gate-1` → `gate-2`) can be added.
+The promotion PR requires **2 reviews from `@projectbluefin/maintainers`** (enforced by merge queue / branch protection). The `github-actions[bot]` token cannot self-approve — at least one human must approve before the PR can be enqueued.
 
-### Blocking an individual release
-
-Add a `do-not-release` label convention: before the Tuesday run, a maintainer can cancel the in-progress workflow run for that repo specifically. The other two repos are not affected.
-
-### Context sourcing (dakota and bluefin)
-
-Unlike `bluefin-lts` which dispatches fresh builds, the bluefin and dakota scheduled release workflows find the **latest successful build/publish run** at approval time and pull its SHA, SBOM, and digest from there. This means the release tags the most recently built image, not necessarily the one built that Tuesday.
+`workflow_dispatch` is available on all three `promote-testing-to-main.yml` workflows for out-of-band promotion attempts.
 
 ## Promotion pipeline consistency epic (#516)
 
@@ -169,6 +177,14 @@ The three image repos (bluefin, bluefin-lts, dakota) currently use inconsistent 
 | — | bluefin, bluefin-lts | Duplicate `generate-release.yml` (local SBOM+release-card) vs `reusable-release.yml` in actions | ✅ Fixed 2026-06-07 (bluefin PR #438, bluefin-lts PR #118) |
 | — | bluefin-lts | `scheduled-lts-release.yml` used fragile dispatch+poll (`gh workflow run` → sleep → `gh run list` poll → `gh run watch`) | ✅ Fixed 2026-06-07 (bluefin-lts PR #118 — replaced with `workflow_call` to `reusable-release.yml`) |
 | — | bluefin, bluefin-lts, dakota | Local `renovate.yml` duplicated runner logic; `renovate-automerge.yml` duplicated PR-lookup+merge logic | ✅ Fixed 2026-06-07 (all three repos PR merged — call `reusable-renovate.yml` + `reusable-renovate-automerge.yml` from actions) |
+| — | bluefin | `no-floating-action-tags` pre-commit hook missing `(?!.*projectbluefin/)` exemption — would fail on valid internal `@main` refs | ✅ Fixed 2026-06-09 (bluefin PR #472) |
+| — | bluefin | `generate-release.yml` orphaned after `execute-release.yml` adopted `reusable-release.yml` | ✅ Fixed 2026-06-09 (bluefin PR #472 — deleted) |
+| — | bluefin-lts | Enqueue step missing mergeability poll loop — race condition on PR creation | ✅ Fixed 2026-06-09 (bluefin-lts PR #129) |
+| — | bluefin-lts | `promote-testing-to-main.yml` missing `close-failure-issue` job — conflict issues never auto-closed | ✅ Fixed 2026-06-09 (bluefin-lts PR #129) |
+| — | dakota | `release.yml` orphaned after `execute-release.yml` adopted `reusable-release.yml` | ✅ Fixed 2026-06-09 (dakota PR #760 — deleted) |
+| — | dakota | `promote-testing-to-main.yml` missing daily schedule — promotion PR could go stale | ✅ Fixed 2026-06-09 (dakota PR #760) |
+| — | dakota | `execute-release.yml` used `project_name: Bluefin dakota` (wrong casing) | ✅ Fixed 2026-06-09 (dakota PR #760) |
+| — | common | `promotion-candidate-e2e.yml` auto-filed issues with emoji in title | ✅ Fixed 2026-06-09 (common PR #539) |
 
 **⚠️ bluefin-lts PR #73 (`feat/shared-workflow-migration`)** is pending review and rewrites the LTS build workflows + renames all LTS images. Do not implement #517 until #73 merges.
 
@@ -199,8 +215,8 @@ git push --force origin auto/promote-testing-to-main
 **Symptom:** `promote-testing-to-main.yml` fails with `Automatic merge failed` and `git status` shows lines like:
 
 ```
-UD .github/workflows/generate-release.yml
 UD .github/workflows/scheduled-stable-release.yml
+UD .github/workflows/weekly-testing-promotion.yml
 ```
 
 `UD` means: **testing deleted** the file, but **main still has it** (or vice versa). This happens when a PR removes a workflow from `testing` (e.g., consolidating to a reusable in `projectbluefin/actions`) but the deletion hasn't reached `main` yet.
@@ -214,7 +230,6 @@ git checkout -B fix/rebuild-squash-promo projectbluefin/main
 git merge --squash projectbluefin/testing  # will fail with UD conflict
 
 # For each UD file, accept the deletion from testing:
-git rm .github/workflows/generate-release.yml
 git rm .github/workflows/scheduled-stable-release.yml
 
 git commit -m "chore: promote testing to main"

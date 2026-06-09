@@ -21,7 +21,7 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 | `docs-quality.yml` | PR gate: skill frontmatter presence and Trail of Bits CI integration | Keeping skill docs complete and well-formed |
 | `build.yml` | Builds and publishes the `common` OCI layer on merge. **Supply chain gap:** currently uses key-based cosign signing inline — migration to shared `sign-and-publish` + `scan-image` tracked in [common#513](https://github.com/projectbluefin/common/issues/513) / [actions#86](https://github.com/projectbluefin/actions/issues/86). | Changing how the shared layer is built or pushed |
 | `pr-e2e.yml` | Pre-merge composed-image gate for the PR's common layer (composes + runs common suite via `run-testsuite.yml`) | Changing how PR-time downstream composition is tested |
-| `e2e.yml` | Post-merge common-suite validation against Bluefin stable, Bluefin LTS, and Dakota | Changing shipped-layer validation after merge |
+| `e2e.yml` | Post-merge common-suite validation against Bluefin stable and Bluefin LTS. Dakota matrix entry is currently skipped ([issue #497](https://github.com/projectbluefin/common/issues/497) — build machine broken). | Changing shipped-layer validation after merge |
 | `run-testsuite.yml` | Local wrapper that centralizes the pinned `projectbluefin/testsuite` SHA | Updating the shared testsuite pin or common-side testsuite wiring |
 | `promotion-candidate-e2e.yml` | Weekly smoke/common check against `bluefin:testing` and `bluefin:lts-testing` | Adjusting common-side signal before downstream Tuesday promotions |
 | `skill-drift.yml` | Warns when implementation changes land without matching docs/skills updates | Adjusting doc-drift coverage or path mapping |

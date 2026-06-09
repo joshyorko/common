@@ -68,9 +68,9 @@ Internal reusable workflow refs use a coordinated policy, not blanket SHA pinnin
 
 **Scope:** shared pre-commit hook active in `common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`. Parity work pending in other repos.
 
-**Regex:** `uses:.*@(main|master|latest|v[0-9])`
+**Regex:** `uses:(?!.*projectbluefin/).*@(main|master|latest|v[0-9])`
 
-The `no-floating-action-tags` hook blocks commits of workflow files containing floating `uses:` refs. It scans `.github/workflows/` YAML files.
+The `no-floating-action-tags` hook blocks commits of workflow files containing floating `uses:` refs. It scans `.github/workflows/` YAML files. Internal `projectbluefin/` refs are explicitly exempted via the negative lookahead — `@main` on `projectbluefin/actions` reusable workflows is intentional.
 
 ### What it blocks
 

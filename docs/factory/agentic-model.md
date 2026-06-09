@@ -10,6 +10,8 @@ Per-repo specifics live in that repo's `AGENTS.md` — start there, then load th
 - **No castrojo fork.** Push branches directly to `projectbluefin/*` repos, open PRs with `gh pr create --repo projectbluefin/<repo>`.
 - **Squash only.** All factory repos use squash merge. Never merge-commit or rebase-merge.
 - **Max 4 open PRs per agent at once.** No WIP PRs.
+- **One PR per feature.** Never batch unrelated changes into a single PR. Each logical fix or feature gets its own branch and PR, even if the code changes are small. Reviewers should be able to review and revert independently.
+- **Ask before opening PRs.** Do not open PRs autonomously. Present the plan and the diff, get explicit human approval, then open. Exception: Renovate bot PRs are pre-approved.
 - **`just check` before every commit** in repos that have a Justfile.
 - **`pre-commit run --all-files` before every commit** in repos with `.pre-commit-config.yaml`.
 - **Never push directly to a protected branch.** Always open a PR. PRs require `lgtm` from a human.

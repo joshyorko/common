@@ -174,3 +174,91 @@ After deleting the script and its skill file, run:
 grep -rn "<script-name>" docs/ specs/ --include="*.md" --include="*.json"
 ```
 Common survivors: `devmode.md` advisories, `image-registry.md` section headers, `acmm-audit-level2.md` risk statements, `specs/` JSON chunks.
+
+## Shell Script Testability Patterns (added 2026-06-10)
+
+### BASH_SOURCE guard for interactive scripts
+
+Wrap the main flow so sourcing the script in bats only loads functions:
+```bash
+# Functions at top — always loadable
+get_uuid() { ... }
+check_device() { ... }
+
+# Main flow only runs when executed directly, not when sourced for testing
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    gum confirm ...
+fi
+```
+When bats runs `source "${SCRIPT}"`, `$0` is the bats runner, so the guard evaluates false and only functions load.
+
+### Testability env-var override idiom
+
+Use the `${VAR:-default}` idiom for any path the script reads from `/proc` or `/dev`:
+```bash
+CMDLINE_FILE="${CMDLINE_FILE:-/proc/cmdline}"
+SETUP_CONFIG_FILE="${SETUP_CONFIG_FILE:-/etc/ublue-os/setup.json}"
+```
+Tests export the override before running: `export CMDLINE_FILE="${WORKDIR}/cmdline"`.
+Used in: `luks-tpm2-autounlock` (CMDLINE_FILE, DISK_BY_UUID_DIR, DEV_DIR), `ublue-*-setup` (SETUP_CONFIG_FILE), `ublue-bling` (BLING_CLI_DIRECTORY, BLING_ENV_SCRIPT).
+
+### PATH-stub mocking for interactive commands
+
+```bash
+setup() {
+    mkdir -p "${WORKDIR}/bin"
+    printf '#!/bin/bash\nexit 0\n' > "${WORKDIR}/bin/gum"   # always confirm
+    chmod +x "${WORKDIR}/bin/gum"
+    # Record args for assertion:
+    printf '#!/bin/bash\necho "$*" >> %s/calls.log\nexit 0\n' "${WORKDIR}" \
+        > "${WORKDIR}/bin/systemd-cryptenroll"
+    chmod +x "${WORKDIR}/bin/systemd-cryptenroll"
+    export PATH="${WORKDIR}/bin:${PATH}"
+}
+```
+Used for `gum`, `systemd-cryptenroll`, `bootc`, `rpm-ostree`. Check `"${WORKDIR}/calls.log"` in assertions.
+
+### Shellcheck pitfalls
+
+**Disable comment — no inline notes (SC1072/SC1073):**
+```bash
+# WRONG:
+# shellcheck disable=SC2086 -- SET_PIN_ARG intentionally unquoted
+# CORRECT — directive alone on its own line:
+# shellcheck disable=SC2086
+sudo cmd ${OPTIONAL_ARG} "${REQUIRED_ARG}"
+```
+
+**Profile.d scripts without shebangs (SC2148):**
+```bash
+# shellcheck shell=bash
+alias neofetch='ublue-fastfetch'
+```
+
+**Suppress SC1091 (source-following info) for the find step:**
+```yaml
+- name: Run shellcheck — .sh scripts
+  run: find system_files -name '*.sh' -print0 | xargs -0 shellcheck -e SC1091
+```
+
+### Both quoting fixes required for hook runners
+
+When fixing `bash $script` (SC2086), also quote the directory in the for loop:
+```bash
+# WRONG — word-splits on directory path AND script variable:
+for script in $HOOKS_DIR/* ; do
+    bash $script
+done
+
+# CORRECT — both must be quoted:
+for script in "${HOOKS_DIR}"/* ; do
+    bash "$script"
+done
+```
+A space in `HOOKS_DIR` will silently fail to find hooks if only `$script` is fixed.
+
+### Subagent factual claims need source verification
+
+Architecture documents from subagents must be source-verified before committing.
+Subagents have hallucinated file content and CI config state. Always `grep` the
+actual file before accepting a claim about its contents or existence.

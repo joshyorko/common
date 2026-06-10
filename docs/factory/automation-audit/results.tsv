@@ -15,3 +15,4 @@ iteration	metric	action	result	notes
 13	16	implementation-roadmap.md	keep	7-phase prioritized roadmap
 14	17	README.md + results.tsv update	keep	Index and final summary
 15	18	drift verification + cleanup	keep	Counts reconciled (97→116, 700→875 LoC); per-repo gates clarified (2/1/0 reviews); follow-up issues #583-586 linked; CODEOWNERS/renovate gaps surfaced
+16	19	CODEOWNERS issue filed (#589) + renovate-pattern clarified	keep	Filed #589 for iso/bonedigger CODEOWNERS gap; downgraded renovate finding from "drift risk" to "intentional org pattern"

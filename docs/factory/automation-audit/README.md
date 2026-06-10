@@ -23,7 +23,8 @@ The projectbluefin factory is **91% automated** across **116 workflows in 7 in-s
 - 4 of 7 non-deterministic steps are already mitigated
 - **875 lines** of `promote-testing-to-main.yml` are triplicated across image repos (bluefin 343 + bluefin-lts 349 + dakota 183) and should consolidate into `projectbluefin/actions`
 - **12 `@main` reusable-workflow refs** remain across image repos: 4 reusable workflows (`reusable-execute-release`, `reusable-release-gate`, `reusable-release-reminder`, `reusable-release`) × 3 consumers (bluefin, bluefin-lts, dakota) — silent behavior changes downstream
-- `iso` and `bonedigger` ship without `CODEOWNERS`; `bluefin-lts`, `dakota`, `actions`, `iso`, `bonedigger` have no in-repo `renovate.json` (rely on org-level `projectbluefin/renovate-config`) — drift risk if org config diverges from repo intent
+- `iso` and `bonedigger` ship without `CODEOWNERS` ([#589](https://github.com/projectbluefin/common/issues/589))
+- `bluefin-lts`, `dakota`, `actions`, `iso`, and `bonedigger` have no in-repo `renovate.json`; they rely on the org-level [`projectbluefin/renovate-config`](https://github.com/projectbluefin/renovate-config) preset — this is the **intended pattern**, not a gap. Audit doc clarified rather than tracked as a defect.
 
 **Total effort to implement all recommendations:** 9 working days (original 7 phases + 1 day consistency consolidation + 1 day test plan)
 
@@ -87,6 +88,7 @@ Follow-up work is tracked in `projectbluefin/common`:
 | [#584](https://github.com/projectbluefin/common/issues/584) | `[consistency C1]` Land `reusable-promote.yml` in `projectbluefin/actions` |
 | [#585](https://github.com/projectbluefin/common/issues/585) | `[consistency C2]` Pin `@main` reusable-workflow refs to SHA in `bluefin` |
 | [#586](https://github.com/projectbluefin/common/issues/586) | `[consistency C2]` Pin `@main` reusable-workflow refs to SHA in `bluefin-lts` |
+| [#589](https://github.com/projectbluefin/common/issues/589) | `[automation-audit]` Add `CODEOWNERS` to `iso` and `bonedigger` (drift-refresh finding) |
 
 *Open a tracking issue for any new finding from drift verification before adding it to the consistency or roadmap docs.*
 

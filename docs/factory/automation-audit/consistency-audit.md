@@ -160,10 +160,10 @@ Order by automation gain × inverse effort:
 
 | Order | Item | Gain | Effort | Status | Tracks |
 |---|---|---|---|---|---|
-| 1 | C2 — pin `@main` to SHA | HIGH | 30 min × 2 | ✅ **Done** — dakota ([#786](https://github.com/projectbluefin/dakota/pull/786)), bluefin-lts ([#159](https://github.com/projectbluefin/bluefin-lts/pull/159)); bluefin ([#484](https://github.com/projectbluefin/bluefin/pull/484)) merged to `testing`, lands on `main` at next promotion | Pre-existing pre-commit hook |
+| 1 | C2 — pin `@main` to SHA | HIGH | 30 min × 2 | ✅ **Done** — dakota ([#786](https://github.com/projectbluefin/dakota/pull/786)), bluefin-lts ([#159](https://github.com/projectbluefin/bluefin-lts/pull/159)), bluefin ([#484](https://github.com/projectbluefin/bluefin/pull/484)) all merged to `main` ✅ | Pre-existing pre-commit hook |
 | 2 | C3 — Renovate grouping rule | MEDIUM | 1 hour | ✅ **Done** — [common#593](https://github.com/projectbluefin/common/pull/593) | [#587](https://github.com/projectbluefin/common/issues/587) |
 | 3 | C1 — reusable-promote workflow | HIGH | 1 day | 🔶 **Partial** — reusable workflow live ([actions#157](https://github.com/projectbluefin/actions/pull/157)), dakota adopted ([dakota#788](https://github.com/projectbluefin/dakota/pull/788)); bluefin-lts + bluefin pending one promotion cycle | [#584](https://github.com/projectbluefin/common/issues/584) |
-| 4 | C4 — sign-and-publish migration | HIGH | 4 hours | ⏳ Pending | [actions#86](https://github.com/projectbluefin/actions/issues/86), [common#513](https://github.com/projectbluefin/common/issues/513) |
+| 4 | C4 — sign-and-publish migration | HIGH | 4 hours | ✅ **Done** — [actions#86](https://github.com/projectbluefin/actions/issues/86) closed 2026-06-05 + [common#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09 | [actions#86](https://github.com/projectbluefin/actions/issues/86) |
 | 5 | C5 — release-state schema | LOW | 2.5 hours | ⏳ Pending | New |
 | 6 | C3.5 — drift detector workflow | MEDIUM | 2 hours | ⏳ Pending | New in `actions/` |
 
@@ -172,7 +172,7 @@ Order by automation gain × inverse effort:
 After C1–C5:
 
 - **725 lines** of triplicated YAML reduced to one reusable workflow + 3 thin callers (≈30 LoC each) — **in progress**: dakota 29 LoC ✅, bluefin-lts + bluefin pending adoption
-- Zero `@main` refs — full SHA pinning across all consumers (5 remain in bluefin `testing` branch; land on `main` at next promotion)
+- Zero `@main` refs — full SHA pinning across all consumers ✅
 - Single source of truth for: build, sign, release, promote, ISO rebuild, renovate-automerge, sync-branches, skill-drift, release-state schema
 - Shared composite library for: token health, retry, sign-and-publish, scan-image, detect-changes, validate-pr, setup-runner, chunka, ghcr-cleanup, generate-release-notes
 

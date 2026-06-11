@@ -11,7 +11,7 @@
 | **3** | `retry-action.yml` | `actions/actions/retry/` | 1h | Nothing |
 | **4** | `check-token-health-action.yml` | `actions/actions/check-token-health/` | 1h | Nothing |
 | **5** | `iso-auto-rebuild.yml` + `iso-dispatch-snippet.yml` | `iso/.github/workflows/` + image repos | 2h | Dispatch token |
-| **6** | `build-upgraded.yml` | `common/.github/workflows/build.yml` | 4h | Maintainer decision on #513 |
+| **6** | `build-upgraded.yml` | `common/.github/workflows/build.yml` | 4h | ~~Maintainer decision on #513~~ **Unblocked** — [#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09 |
 | **7** | `dakota-cache-warm.yml` | `dakota/.github/workflows/` | 30 min | Nothing |
 
 ---
@@ -104,7 +104,7 @@
 **What:** Keyless signing + SBOM + SLSA L2 + CVE scan for `common/build.yml`.
 
 **Steps:**
-1. **Get maintainer approval on #513** — this changes signing infrastructure
+1. ~~**Get maintainer approval on #513**~~ — ✅ [#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09; Phase 6 is unblocked and ready to implement
 2. Verify `id-token: write` is available (it is — already in current permissions)
 3. Replace `build.yml` with `build-upgraded.yml`:
    - Remove `SIGNING_SECRET` usage → keyless cosign
@@ -159,7 +159,7 @@ Phase 2 (git-cliff)     ── no deps ──→ immediate
 Phase 3 (retry action)  ── no deps ──→ immediate
 Phase 4 (token health)  ── no deps ──→ immediate
 Phase 5 (ISO dispatch)  ── needs dispatch token (admin setup) ──→ after admin action
-Phase 6 (supply chain)  ── needs maintainer approval (#513) ──→ after design gate
+Phase 6 (supply chain)  ── ✅ [#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09 ──→ ready to implement
 Phase 7 (cache warm)    ── no deps ──→ immediate
 ```
 

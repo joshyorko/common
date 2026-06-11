@@ -1,6 +1,6 @@
 # Automation Audit — Pipeline Map
 
-> Generated: 2026-06-09 | Refreshed: 2026-06-10 (counts verified live) | Scope: projectbluefin org (common, bluefin, bluefin-lts, dakota, actions, testsuite, iso)
+> Generated: 2026-06-09 | Refreshed: 2026-06-10 (counts verified live), 2026-06-10 (drift pass: workflow counts, #423/#513 resolved) | Scope: projectbluefin org (common, bluefin, bluefin-lts, dakota, actions, testsuite, iso)
 >
 > Out-of-scope siblings (not part of the publish loop): `bonedigger` (2 workflows), `housekeeping` (0 workflows).
 
@@ -54,7 +54,7 @@
 
 ## Per-Repo Workflow Inventory
 
-### common (11 workflows)
+### common (12 workflows)
 
 | Workflow | Trigger | Automation Level | Notes |
 |---|---|---|---|
@@ -72,7 +72,7 @@
 | `docs-quality.yml` | PR | ✅ Full | Skill frontmatter validation |
 | `backfill-pipeline.yml` | manual | ✅ Full (on-demand) | Widget injection |
 
-### bluefin (26 workflows)
+### bluefin (27 workflows)
 
 | Workflow | Trigger | Automation Level | Notes |
 |---|---|---|---|
@@ -102,11 +102,11 @@
 | `validate-renovate.yml` | PR | ✅ Full | Renovate config lint |
 | `consumer-validate-generate-release-notes.yml` | dispatch | ✅ Full | Release note validation |
 
-### bluefin-lts (16 workflows — mirrors bluefin)
+### bluefin-lts (17 workflows — mirrors bluefin)
 
 Uses shared reusable workflows. Key difference: 7-day promotion floor. `scheduled-lts-release.yml` added the time floor.
 
-### dakota (22 workflows)
+### dakota (23 workflows)
 
 | Workflow | Trigger | Automation Level | Notes |
 |---|---|---|---|
@@ -119,7 +119,7 @@ Uses shared reusable workflows. Key difference: 7-day promotion floor. `schedule
 | `track-next-junctions.yml` | schedule | ✅ Full | Upstream junction monitoring |
 | `update-filemap.yml` | push | ✅ Full | File map generation |
 
-### actions (22 workflows — reusable hub)
+### actions (26 workflows — reusable hub)
 
 | Workflow | Purpose | Status |
 |---|---|---|
@@ -170,9 +170,9 @@ Fully automated: `e2e.yml` (reusable), `nightly.yml`, `manual.yml` (dispatch), `
 |---|---|---|---|
 | 1 | ISO builds are fully manual (dispatch-only) | No automated rebuild on stable promotion | ❌ Not tracked |
 | 2 | Dakota E2E disabled | No automated validation for dakota images | #497 |
-| 3 | Installability gate missing | Can't verify install works before promotion | #423 |
+| 3 | ~~Installability gate missing~~ | ✅ [#423](https://github.com/projectbluefin/common/issues/423) closed — installability gate implemented | Resolved |
 | 4 | Bonedigger crash signal not wired | No automated rollback on user-reported crashes | #424 |
-| 5 | Key-based signing (not keyless) | Requires secret rotation; no OIDC provenance | #513 |
+| 5 | ~~Key-based signing (not keyless)~~ | ✅ [#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09 + [actions#86](https://github.com/projectbluefin/actions/issues/86) closed 2026-06-05 — Phase 6 unblocked | Resolved |
 | 6 | No SBOM on common build.yml | Supply chain gap | actions#86 |
 | 7 | No SLSA L2 provenance | Supply chain gap | actions#86 |
 | 8 | MERGERAPTOR secrets missing for sync-labels | Label sync fails silently | #511 |

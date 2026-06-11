@@ -15,7 +15,7 @@ This document complements [`publish-loop-spec.md`](publish-loop-spec.md) (the *w
 | L2 — integration | every merge | end-to-end build → test → push → sign on a synthetic image | `actions/migration-test.yml` (extend) |
 | L3 — chaos | weekly | inject failures (rate limit, token expiry, cache poison) and verify self-heal | new `actions/chaos-suite.yml` |
 | L4 — full publish | monthly + on-promotion | real `:testing` → `:stable` on all four image streams | existing `promotion-candidate-e2e.yml` + `post-merge-e2e.yml` |
-| L5 — installability | per stable | ISO produced, boots, OS upgrades cleanly | testsuite + `installability` gate (planned [#423](https://github.com/projectbluefin/common/issues/423)) |
+| L5 — installability | per stable | ISO produced, boots, OS upgrades cleanly | testsuite + `installability` gate ([#423](https://github.com/projectbluefin/common/issues/423) ✅ closed — gate implemented) |
 
 L0–L2 are mostly in place. L3, L4 partial, L5 missing — defined below.
 
@@ -164,7 +164,7 @@ A dry-run failure files an issue and pages on-call. Real promotion is blocked wh
 
 ## L5 — Installability gate (planned)
 
-Tracked in [common#423](https://github.com/projectbluefin/common/issues/423). Required before `testing → stable` for ISO-bearing images.
+[common#423](https://github.com/projectbluefin/common/issues/423) ✅ closed — installability gate implemented. Required before `testing → stable` for ISO-bearing images.
 
 ### Pass criteria
 

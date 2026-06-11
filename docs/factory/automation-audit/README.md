@@ -14,7 +14,7 @@ When this principle conflicts with convenience, the principle wins. New workflow
 
 ## Executive Summary
 
-The projectbluefin factory is **91% automated** across **117 workflows in 7 in-scope repos** (common 11, bluefin 26, bluefin-lts 16, dakota 23, actions 22, testsuite 10, iso 9; bonedigger 2 and housekeeping 0 are out of audit scope). This audit identifies the remaining gaps and provides ready-to-deploy artifacts to reach **≥97% automation** with only the documented intentional human gates remaining.
+The projectbluefin factory is **91% automated** across **124 workflows in 7 in-scope repos** (common 12, bluefin 27, bluefin-lts 17, dakota 23, actions 26, testsuite 10, iso 9; bonedigger 2 and housekeeping 0 are out of audit scope). *(automation % will be recalculated on next full inventory)* This audit identifies the remaining gaps and provides ready-to-deploy artifacts to reach **≥97% automation** with only the documented intentional human gates remaining.
 
 **Key findings:**
 - ISO builds are the weakest link (25% automation — fully manual dispatch); fix artifacts retained as **proposals only** (the `iso` repo is currently out of scope for this rollout)
@@ -22,8 +22,8 @@ The projectbluefin factory is **91% automated** across **117 workflows in 7 in-s
 - Self-healing patterns (retry, token health) don't exist yet
 - 4 of 7 non-deterministic steps are already mitigated
 - **C1 (partial):** `promote-testing-to-main.yml` consolidation in progress — dakota migrated (183 → 29 LoC via [actions#157](https://github.com/projectbluefin/actions/pull/157) + [dakota#788](https://github.com/projectbluefin/dakota/pull/788)); bluefin (343 LoC) and bluefin-lts (353 LoC) adoption pending one observed promotion cycle
-- **5 `@main` reusable-workflow refs** remain in bluefin only (bluefin-lts and dakota cleaned ✅); fix in bluefin is merged to `testing` ([bluefin#484](https://github.com/projectbluefin/bluefin/pull/484)) — lands on `main` at next promotion cycle
-- `iso` and `bonedigger` ship without `CODEOWNERS` ([#589](https://github.com/projectbluefin/common/issues/589))
+- **0 `@main` reusable-workflow refs** remain — bluefin ([bluefin#484](https://github.com/projectbluefin/bluefin/pull/484)), bluefin-lts, and dakota all cleaned ✅
+- `iso` and `bonedigger` now have `CODEOWNERS` ✅ ([#589](https://github.com/projectbluefin/common/issues/589) resolved via [bonedigger#22](https://github.com/projectbluefin/bonedigger/pull/22) + [iso#60](https://github.com/projectbluefin/iso/pull/60))
 - `bluefin-lts`, `dakota`, `actions`, `iso`, and `bonedigger` have no in-repo `renovate.json`; they rely on the org-level [`projectbluefin/renovate-config`](https://github.com/projectbluefin/renovate-config) preset — this is the **intended pattern**, not a gap. Audit doc clarified rather than tracked as a defect.
 
 **Total effort to implement all recommendations:** 9 working days (original 7 phases + 1 day consistency consolidation + 1 day test plan)
@@ -86,7 +86,7 @@ Follow-up work is tracked in `projectbluefin/common`:
 |---|---|---|
 | [#583](https://github.com/projectbluefin/common/issues/583) | `[automation-audit]` 2026-06-10 supplement landed — track follow-up batches | Open (parent tracker) |
 | [#584](https://github.com/projectbluefin/common/issues/584) | `[consistency C1]` Land `reusable-promote.yml` in `projectbluefin/actions` | Open (1-day refactor, separate session) |
-| [#585](https://github.com/projectbluefin/common/issues/585) | `[consistency C2]` Pin `@main` reusable-workflow refs to SHA in `bluefin` | ✅ Merged: [bluefin#484](https://github.com/projectbluefin/bluefin/pull/484) (→ `testing`; reaches `main` on next promotion) |
+| [#585](https://github.com/projectbluefin/common/issues/585) | `[consistency C2]` Pin `@main` reusable-workflow refs to SHA in `bluefin` | ✅ Merged to `main`: [bluefin#484](https://github.com/projectbluefin/bluefin/pull/484) |
 | [#586](https://github.com/projectbluefin/common/issues/586) | `[consistency C2]` Pin `@main` reusable-workflow refs to SHA in `bluefin-lts` | ✅ Merged: [bluefin-lts#159](https://github.com/projectbluefin/bluefin-lts/pull/159) (live on `main`) |
 | [#589](https://github.com/projectbluefin/common/issues/589) | `[automation-audit]` Add `CODEOWNERS` to `iso` and `bonedigger` (drift-refresh finding) | ✅ Merged: [bonedigger#22](https://github.com/projectbluefin/bonedigger/pull/22), [iso#60](https://github.com/projectbluefin/iso/pull/60) (using `@projectbluefin/maintainers` team handle so membership changes auto-propagate) |
 | [#583](https://github.com/projectbluefin/common/issues/583) | Phase 1: v1 tag auto-update | ✅ Merged: [actions#154](https://github.com/projectbluefin/actions/pull/154) |
@@ -183,7 +183,7 @@ The audit is small-and-current, not big-and-stale. Keep it that way.
 
 | Decision | Context | Recommendation |
 |---|---|---|
-| Keyless signing migration (#513) | Eliminates SIGNING_SECRET rotation + enables SLSA | Approve — standard practice for OIDC-capable repos |
+| ~~Keyless signing migration (#513)~~ | ✅ [common#513](https://github.com/projectbluefin/common/issues/513) closed 2026-06-09 + [actions#86](https://github.com/projectbluefin/actions/issues/86) closed 2026-06-05 — Phase 6 unblocked and C4 complete | Resolved |
 | ISO dispatch token type | App vs. PAT for cross-repo dispatch | GitHub App (more secure, auditable) |
 | MERGERAPTOR secrets (#511) | One-time admin provisioning for label sync | Provision — 5 minute task, high cumulative value |
 

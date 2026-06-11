@@ -227,10 +227,10 @@ A comprehensive audit of the factory's automation coverage lives in [`docs/facto
 
 | Measure | Current | After full implementation |
 |---|---|---|
-| Workflow automation | 91% (88/97) | 97% (93/97) |
-| Manual touchpoints | 11 | 4 (intentional human gates only) |
-| Self-healing patterns | 0 | 2 (retry + token health) |
-| Supply chain (SBOM/SLSA) | None | Full (keyless + SBOM + SLSA L2) |
+| Workflow automation | ~97% (93/97) | 97%+ |
+| Manual touchpoints | 4 (intentional human gates) | 4 (intentional human gates only) |
+| Self-healing patterns | 2 (retry + token health) | 2+ |
+| Supply chain (SBOM/SLSA) | ✅ Live (keyless OIDC + syft + SLSA L2, common#595) | Extend to all image repos |
 
 **Highest-impact quick wins (no dependencies, 1 day total):**
 1. `actions-v1-tag-update.yml` — eliminates forgotten tag push
@@ -241,6 +241,18 @@ A comprehensive audit of the factory's automation coverage lives in [`docs/facto
 **Requires maintainer decision:**
 - Keyless signing migration (#513) — needed for Phase 6
 - ISO dispatch token provisioning — needed for Phase 5
+
+---
+
+## Known CI Pitfalls (2026-06-11)
+
+Three patterns that have caused silent CI failures or `startup_failure` across factory repos. See [`docs/skills/ci-tooling.md`](ci-tooling.md) for full detail and code examples.
+
+| Pitfall | Symptom | Fix |
+|---|---|---|
+| **Consumer PR colon format** | `check-consumer-contract.yml` fails silently | PR body must use `Consumer PR: <URL>` (colon format) — NOT a Markdown heading |
+| **Caller permissions starvation** | Reusable workflow job shows `startup_failure` with no output | Caller `permissions:` block must include the union of all permissions the reusable jobs need |
+| **`workflow_run` name mismatch** | Post-merge e2e gate always skips | `workflow_run.workflows:` must match the **exact** `name:` field of the target YAML — verify it produces the artifact being tested |
 
 ---
 

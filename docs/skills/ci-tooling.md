@@ -549,6 +549,78 @@ Consumer CI run: https://github.com/projectbluefin/{repo}/actions/runs/{N}
 Out-of-org consumer impact: {explanation or "N/A"}
 ```
 
+### ⛔ Consumer PR body format — colon syntax is REQUIRED
+
+The `check-consumer-contract.yml` regex matches `^Consumer PR:` **literally** (colon, no space before colon, space after). Using a Markdown heading silently fails:
+
+```markdown
+# WRONG — regex does not match a heading; check silently fails
+## Consumer PR
+https://github.com/projectbluefin/bluefin/pull/N
+
+# CORRECT — colon format on one line
+Consumer PR: https://github.com/projectbluefin/bluefin/pull/N
+Consumer CI run: https://github.com/projectbluefin/bluefin/actions/runs/N
+```
+
+Same rule applies to `Consumer CI run:`. The CI run URL must point to a **passing** run in the consumer repo (bluefin, bluefin-lts, or dakota) that exercises the changed action.
+
+---
+
+## Caller-level permissions starvation
+
+When a workflow calls a reusable workflow, the **caller's `permissions:` block is the maximum grant**. A reusable job that declares `permissions: contents: write` cannot exceed what the caller grants — it silently receives only `read`.
+
+```yaml
+# WRONG — caller grants only read; reusable's write permission is silently downgraded
+jobs:
+  call:
+    permissions:
+      contents: read
+    uses: projectbluefin/actions/.github/workflows/reusable-promote.yml@<sha>
+
+# CORRECT — caller grants the union of all permissions the reusable jobs need
+jobs:
+  call:
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    uses: projectbluefin/actions/.github/workflows/reusable-promote.yml@<sha>
+```
+
+**Symptom:** The reusable job shows `startup_failure` with no further error output. Check the caller's `permissions:` block first — it is the most common root cause.
+
+*Observed: caused `startup_failure` on every bluefin-lts promote push until fixed in bluefin-lts #162.*
+
+---
+
+## workflow_run trigger — exact workflow name matching
+
+`workflow_run` triggers match on the **exact `name:` field** of the target workflow YAML file, not the filename. If the name drifts between repos or variants, the trigger silently never fires.
+
+```yaml
+# WRONG — watches "Build Bluefin LTS" but the HWE image is built by "Build Bluefin LTS HWE"
+on:
+  workflow_run:
+    workflows: ["Build Bluefin LTS"]
+    types: [completed]
+
+# CORRECT — watch the workflow that actually produces the artifact you're testing
+on:
+  workflow_run:
+    workflows: ["Build Bluefin LTS HWE"]
+    types: [completed]
+```
+
+**Diagnostic checklist:**
+1. Open the target workflow YAML and read the top-level `name:` field
+2. Confirm that workflow actually produces the artifact you're gating on
+3. Check: does the triggering workflow run on the branch you expect?
+
+*Observed: bluefin-lts post-merge-e2e was watching `Build Bluefin LTS` but testing the HWE image (produced by `Build Bluefin LTS HWE`) — gate always skipped. Fixed in bluefin-lts #163.*
+
 - `Consumer PR`: link to a PR in a consuming repo that exercises the changed action (bluefin preferred)
 - `Consumer CI run`: link to a passing Actions run in the consuming repo showing the change works
 - `Out-of-org consumer impact`: explain whether aurora/bazzite are affected, or state `N/A` explicitly

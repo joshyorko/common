@@ -57,15 +57,29 @@ When a critical fix needs a versioned tag outside the monthly window:
 
 | Practice | Current state | Tracking |
 |---|---|---|
-| OCI image signing | Key-based (`SIGNING_SECRET`) | Migrate to keyless via `sign-and-publish` — [common#513](https://github.com/projectbluefin/common/issues/513) |
-| SBOM | None | Adopt `sign-and-publish` (includes syft) — [actions#86](https://github.com/projectbluefin/actions/issues/86) |
-| SLSA L2 provenance | None | Adopt upgraded `sign-and-publish` — [actions#86](https://github.com/projectbluefin/actions/issues/86) |
-| CVE scanning | None | Adopt `scan-image` composite action — [actions#86](https://github.com/projectbluefin/actions/issues/86) |
+| OCI image signing | ✅ Keyless OIDC — live as of 2026-06-11 ([common#595](https://github.com/projectbluefin/common/issues/595)) | `SIGNING_SECRET` removed — do not reference in new workflows |
+| SBOM | ✅ syft — bundled in `sign-and-publish` composite action | — |
+| SLSA L2 provenance | ✅ GitHub Actions attestation — bundled in `sign-and-publish` | — |
+| CVE scanning | ✅ Trivy gate — bundled in `sign-and-publish` | — |
 | Changelog quality | `git log` heredoc | Migrate to `git-cliff` — [common#513](https://github.com/projectbluefin/common/issues/513) |
+
+### Keyless signing — required permissions
+
+`sign-and-publish` composite action requires these permissions on the calling job:
+
+```yaml
+permissions:
+  id-token: write        # OIDC token for keyless signing
+  attestations: write    # GitHub SLSA L2 attestation
+  packages: write        # push to GHCR
+  security-events: write # Trivy CVE gate upload
+```
+
+Do **not** add `SIGNING_SECRET` to new workflows — keyless OIDC has replaced it.
 
 ## Verifying a published artifact
 
-### Verify cosign signature (current — key-based)
+### Verify cosign signature (legacy — key-based, pre-2026-06-11)
 
 ```bash
 cosign verify \
@@ -73,7 +87,7 @@ cosign verify \
   ghcr.io/projectbluefin/common:latest
 ```
 
-### Verify GitHub attestation (after common#513 ships)
+### Verify GitHub attestation (live — keyless, as of common#595)
 
 ```bash
 gh attestation verify \

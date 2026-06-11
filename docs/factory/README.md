@@ -75,7 +75,7 @@ Hard rules, branch targets, PR comment policy, session start: [`docs/factory/age
 
 Factory automation audit (2026-06-09, supplemented 2026-06-10): [`docs/factory/automation-audit/`](automation-audit/README.md)
 
-- **91% automated** (88/97 workflows fully autonomous)
+- **~97% automated** (93/97 workflows fully autonomous)
 - **4 intentional human gates** (promotion review, actions merge, priority assignment, stale PR unclaim) — see [`docs/skills/human-gates.md`](../skills/human-gates.md)
 - **11 ready-to-deploy artifacts** to reach ≥97% automation, including a reusable promotion workflow that collapses ~700 lines of triplicated YAML
 - **L0–L5 publish-loop test plan** ([`publish-loop-test-plan.md`](automation-audit/publish-loop-test-plan.md)) — chaos suite, dry-run with idempotency probe, artifact verification

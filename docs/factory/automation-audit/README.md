@@ -96,7 +96,7 @@ Follow-up work is tracked in `projectbluefin/common`:
 | [#583](https://github.com/projectbluefin/common/issues/583) | Phase 7: dakota BST cache-warm | ✅ Merged: [dakota#787](https://github.com/projectbluefin/dakota/pull/787) |
 | [#583](https://github.com/projectbluefin/common/issues/583) | C2: pin @main refs to SHA in dakota | ✅ Merged: [dakota#786](https://github.com/projectbluefin/dakota/pull/786) |
 | [#587](https://github.com/projectbluefin/common/issues/587) | C3: Renovate grouping rule for projectbluefin/actions | ✅ Merged: [common#593](https://github.com/projectbluefin/common/pull/593) |
-| [#584](https://github.com/projectbluefin/common/issues/584) | C1: reusable-promote.yml | ⚠️ Blocked — schema mismatch between template and existing release-state.yaml; see [#584 comment](https://github.com/projectbluefin/common/issues/584) for details |
+| [#584](https://github.com/projectbluefin/common/issues/584) | C1: reusable-promote.yml | ✅ Partial: [actions#157](https://github.com/projectbluefin/actions/pull/157) merged (reusable workflow live), [dakota#788](https://github.com/projectbluefin/dakota/pull/788) merged (canary caller, 183→30 LoC). bluefin-lts and bluefin adoption pending one observed promotion cycle. |
 
 *Open a tracking issue for any new finding from drift verification before adding it to the consistency or roadmap docs.*
 

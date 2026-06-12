@@ -157,9 +157,9 @@ The daily heartbeat ensures the promotion PR stays fresh and gate checks are re-
 
 **dakota** differs from bluefin/lts: rather than squashing git commits, `promote-testing-to-main.yml` resolves the current `:testing` OCI digest and writes it to `.github/release-state.yaml` on the promotion branch.
 
-### Known gap: dakota E2E disabled
+### Dakota E2E
 
-Dakota's release gate runs with `run_e2e: false` because the dakota build machine is currently broken ([issue #497](https://github.com/projectbluefin/common/issues/497)). Re-enable by setting `run_e2e: true` in `dakota/.github/workflows/promote-testing-to-main.yml` once #497 is resolved.
+Dakota E2E was restored as of [common#598](https://github.com/projectbluefin/common/pull/598) (2026-06-11). The promotion gate runs with `run_e2e: true`. If it is ever disabled again, re-enable by setting `run_e2e: true` in `dakota/.github/workflows/promote-testing-to-main.yml` and verify the dakotad build machine is healthy.
 
 ### Approval
 

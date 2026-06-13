@@ -6,6 +6,34 @@ pattern, and the rules for what can and cannot move to brew.
 
 ---
 
+## Homebrew 6.0 tap trust (required as of 2026-06-11)
+
+Homebrew 6.0.0 blocks untrusted taps — formulae/casks from them are silently
+unavailable unless the tap is explicitly trusted. This affects `ublue-os/tap`
+and `ublue-os/experimental-tap` which ship VS Code, VSCodium, JetBrains,
+Antigravity, Zed, Cursor, framework_tool, asusctl-linux.
+
+**In just recipes** that call `brew tap` before cask installs:
+```diff
+- brew tap ublue-os/tap 2>/dev/null || true
++ brew tap --trust ublue-os/tap
+```
+The `|| true` silencer must be removed — tap failures should surface.
+
+**In Brewfiles** that declare taps (Homebrew 6.0 Brewfile-native syntax):
+```ruby
+tap "ublue-os/tap", trusted: true
+tap "ublue-os/experimental-tap", trusted: true
+```
+
+**Do not use `HOMEBREW_TRUSTED_TAPS` env var** — this was a Homebrew 4.x
+mechanism. The correct 6.0 approach is `--trust` at tap-time and
+`trusted: true` in Brewfiles.
+
+Ref: https://brew.sh/2026/06/11/homebrew-6.0.0/
+
+---
+
 ## The preinstall.d pattern
 
 `brew-preinstall.service` is a user-level oneshot systemd service that

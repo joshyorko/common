@@ -35,7 +35,7 @@ Agent-specific instruction files (`.github/copilot-instructions.md`, `AGENTS.md`
 | [qa.md](qa.md) | QA model, test coverage matrix, promotion gates by repo, hardware gap, running tests |
 | [hive-review.md](hive-review.md) | `~/src/hive-status` — session start, P0/P1 triage, hive label taxonomy |
 | [queue-dashboard.md](queue-dashboard.md) | PR review and merge queue workflow — ruleset (1 approval, squash, ALLGREEN queue), triage tiers, rebase patterns, submodule boundary policy |
-| [brew-lifecycle.md](brew-lifecycle.md) | How to add/remove system-default Homebrew packages via brew-preinstall, the preinstall.d content-addressed lifecycle, what can move to brew, and per-shell starship init pattern |
+| [brew-lifecycle.md](brew-lifecycle.md) | How to add/remove system-default Homebrew packages via brew-preinstall, the preinstall.d content-addressed lifecycle, what can move to brew, per-shell starship init pattern, and Homebrew 6.0 tap trust (`--trust` flag + `trusted: true` in Brewfiles) |
 | [release-promotion.md](release-promotion.md) | **common** release and promotion — criteria, monthly cadence, hotfix process, artifact verification, supply chain (keyless cosign, SBOM, SLSA L2 live as of 2026-06-11) |
 | [workflow-map.md](workflow-map.md) | What each `common` GitHub workflow is for — validation, E2E, release, and factory-policy boundaries |
 | [e2e-ci.md](e2e-ci.md) | Pre/post-merge and promotion-candidate E2E CI for common — composed PR gate, testing-stream smoke/common checks, masked brew setup, quarantined scenarios |
@@ -43,6 +43,7 @@ Agent-specific instruction files (`.github/copilot-instructions.md`, `AGENTS.md`
 | [onboarding.md](onboarding.md) | Verified setup commands, correct pip/npm flags, and PR branch targets for all projectbluefin repos |
 | [submodule-boundary.md](submodule-boundary.md) | What is/isn't editable in this repo — `system_files/shared/` is directly tracked here (edit freely), `system_files/bluefin/` is Bluefin-specific |
 | [dconf-consistency.md](dconf-consistency.md) | GSettings override ↔ dconf lock file parity rules — must edit both files together for locked settings |
+| [oem-hardware-hooks.md](oem-hardware-hooks.md) | OEM first-boot setup hooks in common: hook directories, version-script contract, shellcheck SC1091 pattern, what belongs here vs downstream, migration checklist |
 | [image-registry.md](image-registry.md) | projectbluefin OCI image registry — all production images at `ghcr.io/projectbluefin/` |
 | [devmode.md](devmode.md) | `ujust devmode` setup wizard — what it installs, UX flow, tap strategy, group logic, legacy -dx advisory, known caveats |
 | [containerfile.md](containerfile.md) | Containerfile build structure — multi-stage build, wallpaper source caveat, ujust completion generation, SHA verification pattern, `just overlay` local testing |

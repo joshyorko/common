@@ -91,8 +91,30 @@ Confirm the exact path before filing the cleanup issue.
 
 | Hook | Type | What it does |
 |---|---|---|
-| `system-setup.hooks.d/10-framework.sh` | system | Intel Framework keyboard karg; Framework 13 Ryzen 7040 suspend fix |
+| `system-setup.hooks.d/10-framework.sh` | system | Intel Framework keyboard karg; Framework 13 Ryzen 7040 suspend fix; AMD 3.5mm jack (kernel-aware) |
 | `user-setup.hooks.d/10-theming.sh` | user | Framework logo/scroll/font; Thelio Astra Ampere logo |
+| `system-setup.hooks.d/11-asus.sh` | system | Enables asusd.service + asus-shutdown.service once asusctl is installed |
+| `user-setup.hooks.d/11-asus.sh` | user | Installs asusctl-linux + rog-control-center-linux via brew on ASUS hardware |
+
+---
+
+## Kernel-aware modprobe fixes
+
+Some hardware workarounds are kernel-specific. Always check `/etc/os-release` before applying or removing modprobe flags:
+
+```bash
+if grep -q "^ID=fedora" /etc/os-release 2>/dev/null; then
+    # Fedora kernel — native support, remove obsolete flag
+else
+    # Non-Fedora kernel (e.g. bluefin-lts on CentOS/RHEL) — flag still needed
+fi
+```
+
+**Example:** AMD Framework 13 audio jack (`/etc/modprobe.d/alsa.conf`):
+- Fedora kernel: handles natively → remove the file if it exists
+- CentOS/RHEL kernel (bluefin-lts): still requires `options snd-hda-intel index=1,0 model=auto,dell-headset-multi`
+
+Without this check, a common hook that removes the file will break AMD Framework 13 audio on bluefin-lts.
 
 ---
 

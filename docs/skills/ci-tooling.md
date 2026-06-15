@@ -71,28 +71,26 @@ gh api repos/actions/checkout/git/ref/tags/v4.2.2 --jq '.object.sha'
 2. Update the `uses:` line: `@<new-sha> # <new-version>`
 3. Renovate handles most updates automatically once pins are tracked
 
-### Internal `projectbluefin/` refs — use `@main`
+### Internal `projectbluefin/` refs — managed tags, not SHA pins
 
-**All internal `projectbluefin/` reusable workflow refs use `@main`, not SHA pins.**
+**`projectbluefin/actions` and `projectbluefin/bonedigger` use managed floating tags (`@v1`), not SHA pins.**
 
-The `no-floating-action-tags` pre-commit hook already exempts `projectbluefin/*` via negative lookahead — `@main` on internal refs is intentional and passes pre-commit.
+The `no-floating-action-tags` pre-commit hook exempts these two repos via negative lookahead. All other cross-repo refs (including `projectbluefin/testsuite`) must be SHA-pinned and are tracked by Renovate.
 
-SHA-pinning internal refs caused repeated `startup_failure` cascades (June 2026, bonedigger#27): stale pins silently broke when the pinned commit predated the called file, giving no actionable error. The failure mode is worse than the risk of `@main` drift on internal repos.
+SHA-pinning `projectbluefin/actions` and `projectbluefin/bonedigger` caused repeated `startup_failure` cascades (June 2026, bonedigger#27): stale pins silently broke when the pinned commit predated the called file, giving no actionable error. The failure mode is worse than the risk of managed-tag drift.
 
 **Current state (post June 2026 cleanup):**
 
 | Caller file | Repo(s) | Calls | Ref |
 |---|---|---|---|
 | `lifecycle-caller.yml` | common | `projectbluefin/actions/.github/workflows/lifecycle.yml` | `@main` |
-| `bonedigger.yml` | bluefin, bluefin-lts, dakota | `projectbluefin/bonedigger/.github/workflows/lifecycle.yml` | `@main` |
+| `bonedigger.yml` | bluefin, bluefin-lts, dakota | `projectbluefin/bonedigger/.github/workflows/lifecycle.yml` | `@v1` |
+| `run-testsuite.yml` | bluefin, bluefin-lts | `projectbluefin/testsuite/.github/workflows/e2e.yml` | SHA-pinned (Renovate) |
+| `run-testsuite.yml` | dakota | `projectbluefin/testsuite/.github/workflows/e2e.yml` | SHA-pinned (Renovate) |
 
-These are **different workflows** serving different purposes:
-- `actions/lifecycle.yml` — full lifecycle: pipeline widget, slash commands, label transitions, stale sweep, auto-merge
-- `bonedigger/lifecycle.yml` — bonedigger agent donation fast-track only
+**Anti-pattern to avoid:** SHA-pinning `projectbluefin/actions` or `projectbluefin/bonedigger` workflow refs. When a SHA predates the file's existence in the repo, GitHub emits `startup_failure: This run likely failed because of a workflow file issue` with no further diagnosis. See [bonedigger#27](https://github.com/projectbluefin/bonedigger/issues/27).
 
-**Anti-pattern to avoid:** SHA-pinning internal workflow refs. When a SHA predates the file's existence in the repo, GitHub emits `startup_failure: This run likely failed because of a workflow file issue` with no further diagnosis. See [bonedigger#27](https://github.com/projectbluefin/bonedigger/issues/27).
-
-**Trap: bad semver tags.** The `v1.1.0` tag in `projectbluefin/actions` was cut from commit `95dc404b` (May 31 2026), which predates `lifecycle.yml` being added to that repo (June 10). Anyone who pinned to `v1.1.0` got a broken caller. Always verify a tag commit actually contains the file you're calling before pinning to it. Use `v1` (the managed floating tag) or `@main`.
+**Trap: bad semver tags.** The `v1.1.0` tag in `projectbluefin/actions` was cut from commit `95dc404b` (May 31 2026), which predates `lifecycle.yml` being added to that repo (June 10). Anyone who pinned to `v1.1.0` got a broken caller. Always verify a tag commit actually contains the file you're calling before pinning to it. Use `v1` (the managed floating tag).
 
 ---
 
@@ -100,11 +98,14 @@ These are **different workflows** serving different purposes:
 
 **Scope:** shared pre-commit hook active in `common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`. Parity work pending in other repos.
 
-**Regex:** `uses:(?!.*projectbluefin/).*@(main|master|latest|v[0-9])`
+**Regex:** `uses:(?!.*projectbluefin/(actions|bonedigger)/).*@(main|master|latest|v[0-9])`
 
-The `no-floating-action-tags` hook blocks commits of workflow files containing floating `uses:` refs. It scans `.github/workflows/` YAML files. Internal `projectbluefin/` refs are explicitly exempted via the negative lookahead — `@main` on `projectbluefin/actions` reusable workflows is intentional.
+The `no-floating-action-tags` hook blocks commits of workflow files containing floating `uses:` refs. It scans `.github/workflows/` YAML files. `projectbluefin/actions/` and `projectbluefin/bonedigger/` refs are explicitly exempted — they use managed `@v1` tags. All other refs (including `projectbluefin/testsuite`) are subject to the hook.
 
-### What it blocks
+A companion hook, `no-sha-pins-for-internal-actions`, blocks SHA pins on `projectbluefin/actions` refs to enforce the managed-tag policy there:
+**Regex:** `uses:.*projectbluefin/actions.*@[0-9a-f]{40}`
+
+### What the floating-tag hook blocks
 
 Third-party actions must be pinned to a full commit SHA with a human-readable version comment. These floating refs are rejected:
 
@@ -112,11 +113,16 @@ Third-party actions must be pinned to a full commit SHA with a human-readable ve
 uses: actions/checkout@v4
 uses: actions/checkout@main
 uses: taiki-e/install-action@latest
+uses: projectbluefin/testsuite/.github/workflows/e2e.yml@main  # also rejected
 ```
 
-### Managed `projectbluefin/` refs
+### Repos with managed tags (exempt)
 
-The ACMM audit treats some internal reusable workflows as a documented policy exception, not a lint cleanup target. `projectbluefin/` internal reusable workflows should follow the repo-local policy comments rather than blanket float-to-`@main` cleanup.
+Only two internal repos use managed floating tags:
+- `projectbluefin/actions` — `@v1` maintained by `update-v1-tag.yml`
+- `projectbluefin/bonedigger` — `@v1` maintained by bonedigger release process
+
+All other `projectbluefin/` cross-repo refs (e.g. `projectbluefin/testsuite`) must be SHA-pinned.
 
 ### Renovate vs pre-commit
 

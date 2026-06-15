@@ -237,6 +237,8 @@ The gate queries `GET /repos/{repo}/actions/runs?head_sha={TESTING_SHA}`. It loo
 2. **The fix is on `testing` but not yet on `main`** — `workflow_run` triggers use the default branch (main) workflow file. A fix to the branches filter only takes effect once it reaches main.
 3. **Gate jq selector mismatch** — the `reusable-release-gate.yml` selector uses `contains("post-merge e2e")` (hyphenated). Any variation (space instead of hyphen) silently fails to match.
 
+> **Previously documented root cause — now fixed:** `reusable-promote-squash.yml` used to hardcode `E2E_HEAD_BRANCH: main` instead of resolving from `inputs.source_branch`. This caused the gate to query post-testing-e2e runs with the wrong SHA. Fixed in June 2026 — the reusable now uses `E2E_HEAD_BRANCH: ${{ inputs.source_branch }}`.
+
 **Manual escape for the current cycle (bluefin only):**
 
 ```bash

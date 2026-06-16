@@ -297,6 +297,49 @@ If the error is `At least 1 approving review is required`:
 - An OrganizationAdmin must approve the PR. The workflow's enqueue step will retry after approval.
 - As a last resort, use `gh pr merge <N> --squash --admin` to bypass (only valid for org admins).
 
+### Source/target branch divergence on a shared file
+
+**Symptom:** `Promote main to lts` (or any squash promote run) fails with:
+
+```
+Auto-merging build_scripts/scripts/kernel-swap.sh
+Process completed with exit code 1
+```
+
+`reusable-promote-squash` builds a squash of the source branch onto the target. If both branches independently modified the same file relative to their common ancestor, git hits a true merge conflict and exits 1. This repeats on **every** promote run until the divergence is resolved.
+
+**Resolution:** Align the target branch (e.g. `lts`) to use the same content as the source branch (`main`) for the conflicting file. Since `lts` is a promotion snapshot of `main` — not an independent development branch — it must never diverge on shared build scripts.
+
+```bash
+# Find the exact diff:
+gh api repos/<org>/<repo>/compare/lts...main --jq '.files[] | select(.filename == "<file>") | .patch'
+
+# Fix: open a PR to lts syncing the diverged lines to match main
+# Then the next squash promotion will apply cleanly
+```
+
+**Prevention:** After any rename of a build flag or variable (e.g. `ENABLE_GDX` → `ENABLE_NVIDIA`), search ALL branches and ALL scripts that consume it before merging. See bluefin-lts PRs #245, #249.
+
+### Zombie publish runs blocking the concurrency queue
+
+**Symptom:** `Publish` workflow runs stuck `in_progress` for > 30 min; new publish runs sit in `pending` indefinitely. The factory status script shows `Publish [main]: never` despite successful builds.
+
+**Root cause:** `cancel-in-progress: false` on the publish concurrency group means stuck runner jobs hold the group indefinitely.
+
+**Resolution:**
+
+```bash
+# Find the zombie runs
+gh run list --repo projectbluefin/dakota --status in_progress \
+  --json databaseId,name,headBranch,createdAt | jq '.[]'
+
+# Cancel each one
+gh run cancel <databaseId> --repo projectbluefin/dakota
+
+# Re-trigger the promote workflow to rebuild the stale squash if PR is CONFLICTING
+gh workflow run <promote-workflow-id> --repo projectbluefin/dakota --ref testing
+```
+
 ### Branch policy on `projectbluefin/actions`
 
 `projectbluefin/actions` has a branch policy that blocks non-admin merges (including the agent token). PRs to `actions` always require a human to merge. After merge, the `@v1` tag must be force-pushed:

@@ -56,7 +56,7 @@ teardown() {
         caffeinate
     "
     [ "${status}" -eq 0 ]
-    [[ "${output}" == *"--what=idle"* ]]
+    [[ "${output}" == *"--what=idle:sleep:handle-lid-switch"* ]]
     [[ "${output}" == *"--who=caffeinate"* ]]
     [[ "${output}" == *"--mode=block"* ]]
 }
@@ -82,7 +82,7 @@ teardown() {
         caffeinate make test
     "
     [ "${status}" -eq 0 ]
-    [[ "${output}" == *"--what=idle"* ]]
+    [[ "${output}" == *"--what=idle:sleep:handle-lid-switch"* ]]
     [[ "${output}" == *"--who=caffeinate"* ]]
     [[ "${output}" == *"make test"* ]]
 }

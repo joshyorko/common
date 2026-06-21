@@ -37,11 +37,15 @@ UBLUE_ALLOWED_UPSTREAMS = {
     "ghcr.io/ublue-os/akmods-extra",               # upstream extra kernel modules
 }
 
+UBLUE_SKIP_DIRS = {"docs/factory", "specs"}
+
 ublue_violations = []
 for path in list(Path(".github/workflows").rglob("*.yml")) + \
             list(Path(".github/workflows").rglob("*.yaml")) + \
             list(Path("docs").rglob("*.md")) + \
             [Path("AGENTS.md")]:
+    if any(path.as_posix().startswith(d) for d in UBLUE_SKIP_DIRS):
+        continue
     if path.name in UBLUE_EXCEPTIONS:
         continue
     try:

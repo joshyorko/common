@@ -46,14 +46,18 @@ Per-repo specifics live in that repo's `AGENTS.md` — start there, then load th
 - No new GitHub App registrations or new app credential pairs
 - No `secrets.NEW_THING` references in workflows that don't already exist
 
-**When a workflow needs a permission it doesn't have, the correct fix is always:**
-```yaml
-permissions:
-  contents: write
-  workflows: write  # example — use the exact permission GitHub requires
-```
+**When a workflow needs a capability it doesn't have, reach for documented git or GitHub primitives first:**
 
-`GITHUB_TOKEN` with the correct `permissions:` block covers every factory use case. If it doesn't, stop and ask a human — do not invent a credential.
+- Need to push content? → `permissions: contents: write`
+- Sync workflow tries to push `.github/workflows/**` and `GITHUB_TOKEN` is blocked? → restore the target branch's own `.github/` after the merge so you never push workflow changes at all:
+  ```bash
+  git merge origin/main -X theirs --no-edit
+  git checkout HEAD@{1} -- .github/   # restore target branch's own workflow files
+  git add .github/ && git commit --amend --no-edit
+  ```
+- Some other gap? → stop and ask a human
+
+Do not reach for tokens or credentials to solve what git operations can solve.
 
 Humans decide when a new secret is needed. This is a security gate, not a convention.
 

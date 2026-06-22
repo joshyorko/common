@@ -7,6 +7,11 @@ on:
       - '*.md'
       - 'LICENSE'
       - '.gitignore'
+      - 'docs/**'
+      - 'AGENTS.md'
+      # .github/workflows/** intentionally NOT ignored: Renovate bumps action SHAs via
+      # digest PRs that only touch workflows; required Build checks must run so the
+      # merge queue can satisfy them.
   push:
     branches:
       - main
@@ -14,6 +19,9 @@ on:
       - '*.md'
       - 'LICENSE'
       - '.gitignore'
+      - 'docs/**'
+      - 'AGENTS.md'
+      - '.github/workflows/**'
   merge_group:
   workflow_dispatch:
 

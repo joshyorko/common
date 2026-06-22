@@ -1,3 +1,10 @@
+FROM docker.io/library/golang:alpine@sha256:3ad57304ad93bbec8548a0437ad9e06a455660655d9af011d58b993f6f615648 AS motd-build
+RUN apk add git && \
+    git clone https://github.com/projectbluefin/motd /src && \
+    git -C /src checkout 405e86c532aed42931b2d398e2761c24b70e978c
+WORKDIR /src
+RUN go build -ldflags="-s -w" -o /umotd .
+
 FROM docker.io/library/alpine:latest@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS build
 
 COPY --from=ghcr.io/ublue-os/bluefin-wallpapers-gnome:latest@sha256:e4d74fa741ce9ff03a6a60440a58c31cef6c0fc145182357d243580ba239f810 / /out/bluefin/usr/share
@@ -23,10 +30,7 @@ RUN curl -fsSLo tmp/game-devices-udev-1.0.tar.gz https://codeberg.org/fabiscafe/
   curl -fsSLo /out/shared/usr/lib/udev/rules.d/70-u2f.rules https://raw.githubusercontent.com/Yubico/libfido2/b974e7cf2ee7392134cc12c08b76a068cf250dd8/udev/70-u2f.rules && \
     echo "eb5ab4db095e5bbc841b023ad3281a22f6d86fefccfaae06fc3f0e1db6cf8152  /out/shared/usr/lib/udev/rules.d/70-u2f.rules" | sha256sum -c
 
-RUN install -d /out/bluefin/usr/bin && \
-    curl -fsSLo /out/bluefin/usr/bin/umotd https://github.com/theMimolet/umotd/releases/download/v0.2.1/umotd_0.2.1_linux_amd64 && \
-    echo "2cd5a07344f553e590b432aa5b3a07c5cbd055487468d33514130ae5f05ba02e  /out/bluefin/usr/bin/umotd" | sha256sum -c && \
-    chmod +x /out/bluefin/usr/bin/umotd
+COPY --from=motd-build /umotd /out/shared/usr/bin/umotd
 
 FROM scratch AS ctx
 COPY /system_files/shared /system_files/shared/

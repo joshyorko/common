@@ -14,7 +14,7 @@ driver or toolkit version, and known constraints.
 |---|---|---|---|---|
 | `projectbluefin/common` | shared overlay | — | — | ✅ `system_files/nvidia/…/80-nvidia-container-toolkit.preset` |
 | `projectbluefin/bluefin` | Fedora | `ublue-os/akmods-nvidia-open` OCI | ✅ (build script) | inherits from common |
-| `projectbluefin/bluefin-lts` | CentOS Stream 10 | `ublue-os/akmods-nvidia-open` OCI | ✅ (pre-existing, GDX) | ✅ `system_files_overrides/gdx/…/80-nvidia-container-toolkit.preset` |
+| `projectbluefin/bluefin-lts` | CentOS Stream 10 | `ublue-os/akmods-nvidia-open` OCI | ✅ (nvidia build overlay) | ✅ `system_files_overrides/gdx/…/80-nvidia-container-toolkit.preset` |
 | `projectbluefin/dakota` | GNOME OS (BST) | `.run` installer, open kmod | ✅ (built from source) | ✅ `elements/bluefin-nvidia/nvidia-container-toolkit-preset.bst` |
 
 **dakota is the reference implementation.** When in doubt about the correct approach for
@@ -92,18 +92,20 @@ The `golang-github-nvidia-container-toolkit` exclusion is intentional — it is 
 community Go rewrite and a different package from NVIDIA's official C toolkit. Keep the
 exclusion even after adding the official toolkit.
 
-### `projectbluefin/bluefin-lts` (GDX variant only)
+### `projectbluefin/bluefin-lts` (nvidia build overlay)
 
-- `build_scripts/overrides/gdx/20-nvidia.sh` — nvidia install script for the GDX flavor
+`gdx/` is the internal build override directory name for the nvidia stack in LTS — it is not a user-facing variant or image name.
+
+- `build_scripts/overrides/gdx/20-nvidia.sh` — nvidia install script
 - `system_files_overrides/gdx/usr/lib/systemd/system-preset/80-nvidia-container-toolkit.preset`
 
 The LTS build uses an override directory system. `build.sh` calls `run_buildscripts_for gdx`
 (runs `build_scripts/overrides/gdx/*.sh`) and `copy_systemfiles_for gdx` (copies
-`system_files_overrides/gdx/` to `/`). Nvidia GDX changes go in those two locations.
+`system_files_overrides/gdx/` to `/`). Nvidia changes for LTS go in those two locations.
 
 The LTS build installs the *full* `nvidia-container-toolkit` package (not `-base`) from the
 `fedora-nvidia` repo that the akmods bundle enables. This is pre-existing behavior; don't
-change the package selection without testing the GDX build.
+change the package selection without testing the nvidia LTS build.
 
 ### `projectbluefin/dakota`
 

@@ -1,6 +1,6 @@
 ---
 name: devmode
-description: Turn on Developer Mode wizard for Bluefin. In-place DX setup via ujust devmode — no -dx image rebase required. Covers tool selection, progress bar, group config, and marker file.
+description: Turn on Developer Mode wizard for Bluefin. In-place developer setup via ujust devmode — developer experience (DX) is a product feature, not a separate image. Covers tool selection, progress bar, group config, and marker file.
 ---
 
 # devmode — Turn on Developer Mode

@@ -3,7 +3,7 @@ just := just_executable()
 # Run unit tests (pytest for hooks.py, bats for shell scripts)
 # test_libvirt_helper.bats is excluded — requires a running libvirtd session
 test:
-    python3 -m pytest tests/test_hooks.py tests/test_check_oci_refs.py tests/test_bazaar_hook.py -v --cov=tests --cov-report=term-missing
+    python3 -m pytest tests/test_hooks.py tests/test_check_oci_refs.py tests/test_bazaar_hook.py tests/test_curated_config.py -v --cov=tests --cov-report=term-missing
     bats tests/test_libsetup.bats
     bats tests/test_setup_scripts.bats
     bats tests/test_privileged_setup.bats
@@ -23,6 +23,24 @@ test:
     bats tests/test_brew_preinstall.bats
     bats tests/test_hardware_hooks.bats
     bats tests/test_nvidia_flatpak_sync.bats
+
+# Preview Bazaar config from this checkout on the local machine
+bazaar-preview:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    sudo -v
+    flatpak info io.github.kolunmi.Bazaar >/dev/null
+    sudo install -d -m0755 /etc/bazaar
+    sudo install -m0644 system_files/bluefin/etc/bazaar/bazaar.yaml /etc/bazaar/bazaar.yaml
+    sudo install -m0644 system_files/bluefin/etc/bazaar/curated.yaml /etc/bazaar/curated.yaml
+    sudo install -m0644 system_files/bluefin/etc/bazaar/blocklist.yaml /etc/bazaar/blocklist.yaml
+    systemctl --user restart bazaar.service || systemctl --user start bazaar.service || true
+    if command -v setsid >/dev/null 2>&1; then
+        setsid -f flatpak run io.github.kolunmi.Bazaar >/dev/null 2>&1
+    else
+        nohup flatpak run io.github.kolunmi.Bazaar >/dev/null 2>&1 &
+    fi
+    echo "Bazaar preview updated and launched in background."
 
 # Build the bluefin-common container locally
 build:

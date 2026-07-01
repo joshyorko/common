@@ -326,6 +326,35 @@ bluefin-apps:
     echo "Installing default system flatpaks..."
     @ujust install-system-flatpaks
 
+# Preview Bazaar curated config from a local common checkout
+# Usage: ujust bazaar-preview /path/to/common
+[group('System')]
+bazaar-preview source="{{ invocation_directory() }}":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    SRC_DIR="${source}"
+    BAZAAR_DIR="${SRC_DIR}/system_files/bluefin/etc/bazaar"
+    for f in bazaar.yaml curated.yaml blocklist.yaml; do
+        if [[ ! -f "${BAZAAR_DIR}/${f}" ]]; then
+            echo "Missing ${BAZAAR_DIR}/${f}"
+            echo "Usage: ujust bazaar-preview /path/to/common"
+            exit 1
+        fi
+    done
+    sudo -v
+    flatpak info io.github.kolunmi.Bazaar >/dev/null
+    sudo install -d -m0755 /etc/bazaar
+    sudo install -m0644 "${BAZAAR_DIR}/bazaar.yaml" /etc/bazaar/bazaar.yaml
+    sudo install -m0644 "${BAZAAR_DIR}/curated.yaml" /etc/bazaar/curated.yaml
+    sudo install -m0644 "${BAZAAR_DIR}/blocklist.yaml" /etc/bazaar/blocklist.yaml
+    systemctl --user restart bazaar.service || systemctl --user start bazaar.service || true
+    if command -v setsid >/dev/null 2>&1; then
+        setsid -f flatpak run io.github.kolunmi.Bazaar >/dev/null 2>&1
+    else
+        nohup flatpak run io.github.kolunmi.Bazaar >/dev/null 2>&1 &
+    fi
+    echo "Bazaar preview updated and launched in background."
+
 # Check Secure Boot status and key enrollment
 [group('System')]
 check-sb-key:

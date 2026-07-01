@@ -26,6 +26,7 @@ Agent entry point for `projectbluefin/common`. Load only the skill(s) that match
 | Check on-call / hive state for the whole org | `docs/skills/hive.md` |
 | **Work in this repo — system_files/** | |
 | Change a GNOME setting or dconf key | `docs/skills/dconf-consistency.md` |
+| Work on Bazaar curated pages, config, or hooks | `docs/skills/bazaar.md` |
 | Understand what files are editable here vs submodule | `docs/skills/submodule-boundary.md` |
 | Touch any image reference or registry path | `docs/skills/image-registry.md` |
 | Modify the Containerfile or add a new binary | `docs/skills/containerfile.md` |

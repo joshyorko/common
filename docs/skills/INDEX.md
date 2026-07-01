@@ -56,6 +56,7 @@ Agent-specific instruction files (`.github/copilot-instructions.md`, `AGENTS.md`
 | [factory-onboarding.md](factory-onboarding.md) | How to onboard a repo into the factory model — two-output rule, banned anti-patterns (no changelog files), skill-drift CI wiring, AGENTS.md mandate |
 | [nvidia.md](nvidia.md) | NVIDIA GPU support — CDI architecture, per-repo nvidia stacks, NGC container ecosystem, driver/toolkit update procedures, known constraints |
 | [pr-review.md](pr-review.md) | PR reviewer's guide — PR type taxonomy, per-type review checklists, lab testing guide, CI gate interpretation, ghost-lab requeue, OEM hook review pattern, test quality checklist |
+| [bazaar.md](bazaar.md) | Bazaar operations in common — curated schema migration, file ownership, local preview loop (`just bazaar-preview`), and hook/config validation |
 
 ## Agent instruction files (not skills — loaded separately by tool)
 

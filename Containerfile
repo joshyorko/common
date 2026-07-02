@@ -32,7 +32,7 @@ RUN curl -fsSLo tmp/game-devices-udev-1.0.tar.gz https://codeberg.org/fabiscafe/
 
 # Convert Bazaar JXL banners to PNG to prevent stable Bazaar v0.8.2 from crashing
 COPY bluefin-branding/system_files/etc/bazaar /tmp/bazaar-banners
-RUN mkdir -p /out/bluefin/etc/bazaar && \
+RUN set -e && mkdir -p /out/bluefin/etc/bazaar && \
     for f in /tmp/bazaar-banners/*.jxl; do \
       name=$(basename "$f" .jxl); \
       djxl "$f" "/out/bluefin/etc/bazaar/${name}.png" -C sRGB; \

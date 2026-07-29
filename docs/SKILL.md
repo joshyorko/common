@@ -3,12 +3,20 @@
 Agent entry point for `projectbluefin/common`. Find the skill that matches
 your task, load only that skill, then act.
 
+For agents entering another factory repository, use
+[`skills/factory-onboarding.md`](skills/factory-onboarding.md) to verify local
+authority, attach common as a shared-contract sidecar, and run the
+self-repair/self-improvement loop on every task.
+
 ## Read order
 
 1. [`AGENTS.md`](../AGENTS.md) — repo contract, build commands, boundaries.
 2. This file — task→skill mapping.
 3. The skill file named in the table below.
 4. [`docs/factory/agentic-model.md`](factory/agentic-model.md) for cross-repo rules.
+
+For routed Hive work, verify the target repository first, then load that
+repository's local catalog with `docs/skills/hive.md` as the preflight guard.
 
 ## Skill index
 
@@ -23,6 +31,8 @@ your task, load only that skill, then act.
 | Check PR queue or merge ruleset | [`queue-dashboard.md`](skills/queue-dashboard.md) |
 | Review an incoming PR | [`pr-review.md`](skills/pr-review.md) |
 | Understand the hive / kubestellar-bot loop | [`hive.md`](skills/hive.md) |
+| Manage the canonical hosted Project Bluefin Hive | [`hosted-hive.md`](skills/hosted-hive.md) |
+| Receive work through the Clankers relay | [`hosted-hive-clankers.md`](skills/hosted-hive-clankers.md) |
 | Improve factory automation or audit gaps | [`factory-improvement.md`](skills/factory-improvement.md) |
 | Onboard a new repo into the factory | [`factory-onboarding.md`](skills/factory-onboarding.md) |
 | Change a GNOME setting or dconf key | [`dconf-consistency.md`](skills/dconf-consistency.md) |

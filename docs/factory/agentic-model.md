@@ -43,7 +43,7 @@ cross-repository breakage, merge, or production human gates.
   ```bash
   git diff --cached --name-only  # must show only docs/* or AGENTS.md
   ```
-- **CI gates protect the OCI image artifact.** A check earns `exit 1` only if failure means a broken or wrong image ships. Process conventions (attribution, skill files, doc formatting) are self-enforced by agents and must never appear as CI gates.
+- **CI gates protect the OCI image artifact.** A check earns `exit 1` only if failure means a broken or wrong image ships. Process conventions (attribution, skill files, doc formatting) are enforced at developer time by `pre-commit`; CI may re-run that suite as a single aggregate step, and that aggregate step is the only permitted place a process convention may fail a build. Never add a bespoke per-convention CI job — that is why `skill-drift.yml` was retired across the factory.
 - **Attribution on every AI-authored commit (convention, not a CI gate):**
   ```
   Assisted-by: <Model> via GitHub Copilot

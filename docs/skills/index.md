@@ -41,7 +41,7 @@ Generated: 2026-08-01 · schema 1.0 · 39 skills
 | [release-promotion](release-promotion.md) | ci-ops | active | Cut releases and verify promotion/hotfix artifacts. |
 | [secrets-policy](secrets-policy.md) | meta | active | Verify secrets and credentials against the approved inventory. |
 | [shell-scripts](shell-scripts.md) | test-authoring | active | Write and test shell scripts under system_files/. |
-| [skill-drift](skill-drift.md) | meta | active | Decide if a PR needs a skill-doc update under the drift waiver process. |
+| [skill-drift](skill-drift.md) | meta | deprecated | Record why the skill-drift CI check was retired and what replaced it. |
 | [skill-improvement](skill-improvement.md) | meta | active | Capture durable agent learnings in maintained skill docs. |
 | [submodule-boundary](submodule-boundary.md) | meta | active | Decide where a system_files change belongs across variants. |
 | [workflow-map](workflow-map.md) | ci-ops | active | Understand what each GitHub workflow in common does. |

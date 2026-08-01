@@ -99,7 +99,7 @@ The following are wired across the factory today (applies to core pipeline repos
 - **CODEOWNERS** with triage sentinel — synced from `common` to downstream repos via `sync-codeowners.yml`
 - **lifecycle.yml** — common-owned issue/PR lifecycle: slash commands, widget, label guard, stale sweep. Active in all 6 core pipeline repos via `lifecycle-caller.yml`.
 - **bonedigger** — scoped to ujust report filing and priority auto-escalation only
-- **skill-drift.yml** — PR advisory gate for doc/impl parity (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`; `testsuite` pending)
+- **pre-commit** — json/yaml/toml hygiene, skill front-matter, doc links, and `no-floating-action-tags` (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`). This is where process conventions are enforced; there is no per-convention CI job.
 - **pre-commit** — json/yaml/toml hygiene and `no-floating-action-tags` (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`)
 - **Renovate** — automated dependency updates (`common`, `bluefin`, `bluefin-lts`, `actions`, `testsuite`; `dakota` not yet)
 - **promotion-candidate-e2e.yml** — weekly Tuesday smoke/common on `bluefin:testing` and `bluefin:lts-testing` before downstream promotions
@@ -114,7 +114,6 @@ The following are wired across the factory today (applies to core pipeline repos
 |---|---|---|---|---|---|---|
 | AGENTS.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | pre-commit | ✅ | ✅ | ✅ | ✅ | — | — |
-| skill-drift.yml | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | no-floating-action-tags | ✅ | ✅ | ✅ | ✅ | ✅ | — |
 | lifecycle.yml caller | ✅ | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) |
 | Renovate config | ✅ | ✅ | ❓ org-inherited | ❌ | ✅ | ✅ |

@@ -36,7 +36,6 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 | `e2e.yml` | Post-merge common-suite validation against Bluefin LTS, Bluefin stable, and Dakota. Dakota entry is non-blocking (`continue-on-error: true`) until infra is confirmed stable ([issue #497](https://github.com/projectbluefin/common/issues/497)). | Changing shipped-layer validation after merge |
 | `run-testsuite.yml` | Local wrapper that centralizes the pinned `projectbluefin/testsuite` SHA | Updating the shared testsuite pin or common-side testsuite wiring |
 | `promotion-candidate-e2e.yml` | Weekly smoke/common check against `bluefin:testing` and `bluefin:lts-testing` | Adjusting common-side signal before downstream Tuesday promotions |
-| `skill-drift.yml` | Warns when implementation changes land without matching docs/skills updates | Adjusting doc-drift coverage or path mapping |
 | `sync-codeowners.yml` | Keeps CODEOWNERS/policy state in sync. Has a `dry_run` boolean `workflow_dispatch` input — always run with `dry_run: true` first to preview changes before applying. Workflow makes irreversible `PUT/DELETE /collaborators` API calls across 4 downstream repos. | Governance / CODEOWNERS automation work |
 | `scorecard.yml` | Weekly OpenSSF Scorecard analysis. Runs on schedule and on push to main. Uploads SARIF to the GitHub Security tab. | Adjusting security posture reporting |
 | `release.yml` | Monthly/versioned OCI release flow. Triggered by schedule, `workflow_dispatch`, or automatically when `E2E` completes green on main. Uses git-cliff for changelog generation ([common#592](https://github.com/projectbluefin/common/pull/592)). | Changing versioned layer release behavior |
@@ -44,7 +43,7 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 
 > **Workflows that do not exist in `common` and must not be re-added:**
 > - `backfill-pipeline.yml` — issue widget backfill. If needed, run as a local script; do not add CI plumbing for a one-shot task.
-> - `skill-drift.yml` — process convention as CI gate; violates AGENTS.md policy. See `ci-tooling.md` § Skill drift detection.
+> - `skill-drift.yml` — retired across the factory; the shared reusable it called was deleted. Process conventions are not CI gates. See `ci-tooling.md` § Skill drift detection.
 > - `docs-quality.yml` — skill frontmatter enforcement belongs in agent review, not CI.
 > - `renovate-automerge.yml` — deleted in [#783](https://github.com/projectbluefin/common/pull/783). Renovate uses `platformAutomerge: true` in `renovate.json`; GitHub's native auto-merge + merge queue replaces it. Do not re-add a workflow-based automerge mechanism.
 
@@ -52,7 +51,7 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 
 ### Validation and policy
 
-`validate.yml`, `validate-brewfiles.yaml`, and `skill-drift.yml` are about catching repo-local mistakes **before merge**.
+`validate.yml` and `validate-brewfiles.yaml` are about catching repo-local mistakes **before merge**.
 
 ### Shared-layer build and release
 
@@ -70,7 +69,7 @@ Load this when you need to understand **what each GitHub workflow in `projectblu
 
 | If the work is about... | Load |
 |---|---|
-| Workflow pins, skill-drift, floating-tag guard | `ci-tooling.md` |
+| Workflow pins, floating-tag guard | `ci-tooling.md` |
 | Pre/post-merge or promotion-candidate tests | `e2e-ci.md` |
 | Release cadence, promotion criteria, artifact signing | `release-promotion.md` |
 | CODEOWNERS or governance policy | `governance.md` |

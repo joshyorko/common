@@ -78,7 +78,7 @@ For the workflow-by-workflow purpose map inside `common`, see [`../skills/workfl
 
 `filed → triage → queued → claimed → done`
 
-Lifecycle automation source: `.github/workflows/lifecycle.yml` (deployed to all factory repos via `lifecycle-caller.yml`).
+Lifecycle automation lives in [`projectbluefin/bonedigger`](https://github.com/projectbluefin/bonedigger) and is consumed by `bluefin`, `bluefin-lts`, and `dakota` through their own `bonedigger.yml` callers. `common` has no lifecycle caller.
 Full lifecycle, epics, project board, and PR labels: [`docs/skills/label-workflow.md`](../skills/label-workflow.md)
 Hard rules, branch targets, PR comment policy, session start: [`docs/factory/agentic-model.md`](agentic-model.md)
 
@@ -97,7 +97,7 @@ The following are wired across the factory today (applies to core pipeline repos
 - **Squash-only merge + delete-branch-on-merge**
 - **5 standard issue templates**
 - **CODEOWNERS** with triage sentinel — synced from `common` to downstream repos via `sync-codeowners.yml`
-- **lifecycle.yml** — common-owned issue/PR lifecycle: slash commands, widget, label guard, stale sweep. Active in all 6 core pipeline repos via `lifecycle-caller.yml`.
+- **bonedigger lifecycle** — issue intake, `ujust report` handling, and priority escalation. Owned by `projectbluefin/bonedigger`; consumed by `bluefin`, `bluefin-lts`, and `dakota` via `bonedigger.yml`. Not present in `common`, `actions`, or `testsuite`.
 - **bonedigger** — scoped to ujust report filing and priority auto-escalation only
 - **pre-commit** — json/yaml/toml hygiene, skill front-matter, doc links, and `no-floating-action-tags` (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`). This is where process conventions are enforced; there is no per-convention CI job.
 - **pre-commit** — json/yaml/toml hygiene and `no-floating-action-tags` (`common`, `bluefin`, `bluefin-lts`, `dakota`, `actions`)
@@ -108,20 +108,25 @@ The following are wired across the factory today (applies to core pipeline repos
 - **2-human production gate** — `factory-operations` environment requires two maintainer approvals before `:stable` tag in `bluefin`, `bluefin-lts`, `dakota`
 - **consumer-validation.yml** (actions) — validates consumer PR/CI evidence before merging actions changes
 
-## Current parity matrix (2026-06-06) — core pipeline repos
+## Factory parity
 
-| Artifact | common | bluefin | bluefin-lts | dakota | actions | testsuite |
-|---|---|---|---|---|---|---|
-| AGENTS.md | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| pre-commit | ✅ | ✅ | ✅ | ✅ | — | — |
-| no-floating-action-tags | ✅ | ✅ | ✅ | ✅ | ✅ | — |
-| lifecycle.yml caller | ✅ | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) | ✅ (PR) |
-| Renovate config | ✅ | ✅ | ❓ org-inherited | ❌ | ✅ | ✅ |
-| Post-merge e2e | ✅ | ✅ | ✅ | partial | — | — |
-| Pre-merge e2e | ✅ (common suite) | ✅ (pr-smoke) | ❌ | ❌ | — | — |
-| Installability gate | ⚠️ smoke/common only | ❌ | ❌ | ❌ | — | ❌ |
-| 2-human production gate | ✅ | ✅ | ✅ | ✅ | — | — |
-| docs/skills/ populated | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+Parity is live state, so it is not tabulated here. A hand-maintained table
+drifts, and a generated one is a table nobody remembers to regenerate. Ask
+GitHub instead:
+
+```bash
+# Which core repos carry a given artifact
+for repo in common bluefin bluefin-lts dakota actions testsuite; do
+  printf '%-13s ' "$repo"
+  gh api "repos/projectbluefin/$repo/contents/AGENTS.md" >/dev/null 2>&1 \
+    && echo yes || echo "--"
+done
+```
+
+Swap the path for whatever you are checking: `.pre-commit-config.yaml`,
+`docs/SKILL.md`, `docs/skills/index.json`, `.github/workflows/bonedigger.yml`.
+
+A gap worth fixing becomes a GitHub issue, not a row in this file.
 
 Factory ACMM status: **Level 3 (Instructed)** as of 2026-06-06.
 

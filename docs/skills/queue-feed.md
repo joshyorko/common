@@ -28,6 +28,11 @@ Use this for a read-only snapshot of the Project Bluefin pull-request queue.
 Use Hive to assign contributor work; the feed does not authorize assignment,
 ordering, labels, or pull-request mutations.
 
+## When Not to Use
+
+Do not use this feed to select Hive work, mutate pull requests, or replace
+GitHub as the source of pull-request review and merge state.
+
 ## Core Process
 
 1. Fetch the explicit JSON endpoint, never the hostname root:
@@ -59,6 +64,13 @@ ordering, labels, or pull-request mutations.
 If the redirect check fails, correct the hostname's redirect rule to target
 exactly `https://queue.projectbluefin.io/queue.json`. Keep machine consumers on
 the explicit `.json` URL even after the redirect is corrected.
+
+## Common Rationalizations
+
+- "The root URL is shorter." It can resolve to HTML; machine consumers use the
+  explicit `.json` endpoint.
+- "The queue order grants selection authority." It is a read-only snapshot;
+  Hive remains the task selector.
 
 ## Red Flags
 

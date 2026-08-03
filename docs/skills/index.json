@@ -541,6 +541,24 @@
       "doc_type": "reference"
     },
     {
+      "id": "queue-feed",
+      "name": "queue-feed",
+      "one_line_purpose": "Read and validate the Project Bluefin static pull-request queue feed.",
+      "entry_point": "docs/skills/queue-feed.md",
+      "category": "ci-ops",
+      "status": "active",
+      "tags": [
+        "queue",
+        "pull-requests",
+        "json",
+        "redirects"
+      ],
+      "description": "Reads the Project Bluefin static pull-request queue as validated JSON. Use when inspecting queue.projectbluefin.io, filtering its queue items, or verifying its root redirect targets queue.json.",
+      "version": "1.0",
+      "last_updated": "2026-08-03",
+      "doc_type": "procedure"
+    },
+    {
       "id": "release-promotion",
       "name": "release-promotion",
       "one_line_purpose": "Cut releases and verify promotion/hotfix artifacts.",

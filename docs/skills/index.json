@@ -34,7 +34,7 @@
       ],
       "description": "bonedigger + kubestellar-bot lifecycle automation. Use when working on ujust report, issue lifecycle, priority escalation, or how fixes ship back to images.",
       "version": "1.0",
-      "last_updated": "2026-07-30",
+      "last_updated": "2026-08-06",
       "doc_type": "reference"
     },
     {

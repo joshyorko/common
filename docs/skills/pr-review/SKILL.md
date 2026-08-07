@@ -1,9 +1,9 @@
 ---
 name: pr-review
-version: "3.1"
+version: "3.2"
 last_updated: "2026-08-06"
 id: pr-review
-one_line_purpose: Run human-decides, agent-lands backlog review in batches of five.
+one_line_purpose: Run human-decides, agent-lands backlog review one card at a time.
 entry_point: docs/skills/pr-review/SKILL.md
 category: ci-ops
 mcp_compliance_level: partial
@@ -12,9 +12,9 @@ status: active
 dependencies: []
 tags: [review, merge, triage, backlog]
 description: >-
-  Human-decides, agent-lands PR and issue backlog review. Assemble a 5-item
-  dossier, collect per-item human verdicts, stage gh commands, land on confirm.
-  Use when reviewing the PR queue or triaging the issue backlog.
+  Human-decides, agent-lands PR and issue backlog review. Present one card at a
+  time, take the human verdict, execute it immediately, then advance. Use when
+  reviewing the PR queue or triaging the issue backlog.
 metadata:
   type: procedure
 ---
@@ -27,10 +27,12 @@ approval, merge, close, and label decision. No exceptions.
 ## Contents
 
 - [When to Use](#when-to-use)
+- [When NOT to Use](#when-not-to-use)
 - [Core Process](#core-process)
 - [Issue Triage Sweep](#issue-triage-sweep)
 - [Blast Radius Map](#blast-radius-map)
 - [Merge Queue Defaults](#merge-queue-defaults)
+- [Common Rationalizations](#common-rationalizations)
 - [Red Flags](#red-flags)
 - [Verification](#verification)
 - [See Also](#see-also)
@@ -43,9 +45,35 @@ approval, merge, close, and label decision. No exceptions.
 - Triaging the open issue backlog.
 - A maintainer asks to "work through the backlog."
 
+## When NOT to Use
+
+- Reviewing a single PR you were directly asked about — just review it.
+- Any repository outside `projectbluefin/*`. Never for `ublue-os/*`.
+- Automated/unattended review. This skill requires a human in the loop by
+  design; if no human is present, stop rather than substituting your judgment.
+
 ## Core Process
 
-The loop: **dossier → verdict → stage → land.**
+The loop: **dossier → verdict → land.**
+
+### Cadence: stream, don't batch
+
+Default to **streaming**: present one card, take the verdict, execute it
+immediately, then present the next. The human stays engaged because every
+answer produces a visible result before the next question arrives.
+
+Batching verdicts and staging them for one bulk confirm at the end is the
+fallback for non-interactive runs only. It front-loads a wall of cards, and by
+the time the plan is printed the human has forgotten card 1.
+
+Ask the maintainer which mode they want if it is not obvious. Two signals that
+streaming is wanted: *"I want to be constantly engaged"* and *"one at a time."*
+
+**Easy-wins mode.** When the maintainer says to skip complexity and exercise
+the loop, sort the remaining queue ascending by `additions + deletions` and
+present the small ones first. Park anything that needs deep investigation in
+`3-human-queue` with a findings comment rather than burning the session on it —
+the goal in this mode is throughput and rhythm, not exhaustive coverage.
 
 ### 1 — Dossier (one-call fetch)
 
@@ -150,16 +178,14 @@ PR verdict vocabulary:
 | `open` | Show the full diff before deciding |
 | `skip` | Move to next, no action |
 
-### 3 — Stage
+### 3 — Land
 
-After all 5 verdicts, print the **complete action plan** as exact `gh`
-commands. Use `gum confirm "Execute action plan?"` for the final gate.
+In streaming mode, execute the verdict as soon as it is given, then report the
+outcome in one line and move to the next card.
 
+In batch fallback mode, print the **complete action plan** as exact `gh`
+commands after all verdicts and gate it on `gum confirm "Execute action plan?"`.
 Nothing is written before the human confirms.
-
-### 4 — Land
-
-On confirm, execute the batch. Report per-PR outcome.
 
 **Halt-on-overlap rule:** if a merge command fails, halt any remaining staged
 action whose file list or closing-issue set intersects the failed PR's. Report
@@ -167,7 +193,7 @@ the conflict and ask the human whether to proceed with the unaffected remainder.
 
 **Batch safety:** GitHub's merge queue (`ALLGREEN` grouping) automatically
 evicts a failing PR and re-tests the remaining group. A single bad PR does NOT
-delay the rest — this makes batch review worthwhile.
+delay the rest — so it is safe to arm several PRs across a session.
 
 ### Landing invariants
 
@@ -281,6 +307,23 @@ human instruction** per PR — never default to it.
 gh pr merge <N> --squash --admin
 ```
 
+### Reading queue state
+
+`autoMergeRequest` reads `null` once a PR has actually **entered** the merge
+queue — the queue entry supersedes the auto-merge request. Do not treat that as
+"auto-merge fell off" and re-arm blindly. Probe instead:
+
+```bash
+gh pr merge <N> --auto   # → "is already queued to merge" means it IS queued
+```
+
+`mergeStateStatus` also goes `UNKNOWN` for a minute or two while GitHub
+recomputes mergeability after anything lands on `main`. That is not an error;
+poll again rather than acting on it.
+
+> ⚠️ Pushing directly to `main` — including the doc-only exception — bumps every
+> queued PR behind the new head. Re-check the armed set after any direct push.
+
 ### Updating branches
 
 `gh pr update-branch <N>` (default merge mode) works for both main-repo and
@@ -309,6 +352,17 @@ gh pr create --base main --head <branch>-rebase \
 
 ---
 
+## Common Rationalizations
+
+| Rationalization | Reality |
+|---|---|
+| "This one is obviously fine, I'll just merge it." | The human verdict is the only review gate on `main` — approvals are not enforced. Merging without one means the change had zero review. |
+| "The PR says it fixes issue N, so closing the PR closes N." | Only a **merge** closes the linked issue. Closing leaves it open forever. |
+| "I'll add `3-human-queue` and sort the labels out later." | Later never comes, and routing automation sees ambiguous state in the meantime. Swap in the same command. |
+| "Both PRs touch the same file, so one must be a duplicate." | Same file, different bug, is common. Compare the actual hunks and the closing-issue sets before calling it. |
+| "The doc change is small, I'll push to main and keep going." | Direct pushes bump every queued PR. Cheap to re-check, expensive to discover a week later. |
+| "The maintainer will not want to be asked about this one." | Ask. Deferring to `3-human-queue` with findings is always available; guessing their verdict is not. |
+
 ## Red Flags
 
 - Agent states an opinion on whether a PR should be merged.
@@ -318,6 +372,10 @@ gh pr create --base main --head <branch>-rebase \
 - `system_files/shared/` change treated as trivial or fast-laned.
 - Batch executed before the human confirms the staged plan.
 - Competing PRs both staged for merge without human acknowledgment.
+- A PR closed without checking whether its `Closes #NNN` issue is now orphaned.
+- `3-human-queue` and `3-clanker-queue` present on the same item.
+- Re-arming auto-merge because `autoMergeRequest` was `null`, without first
+  probing whether the PR is already queued.
 
 ## Verification
 
@@ -328,8 +386,9 @@ gh pr create --base main --head <branch>-rebase \
 - [ ] `--admin` was used only when the human explicitly said so.
 - [ ] `system_files/shared/` PRs were flagged as ALL-variant blast radius.
 - [ ] The four [human decision gates](../human-gates.md) were respected.
-- [ ] Staged action plan was printed and confirmed before any writes.
 - [ ] Competing pairs were detected and resolved before staging merges.
+- [ ] The orphaned-issue sweep was run before ending the session.
+- [ ] No item carries both queue labels.
 
 ### Re-derivation commands
 

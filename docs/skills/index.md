@@ -35,7 +35,7 @@ Generated: 2026-08-06 · schema 1.0 · 39 skills
 | [nvidia](nvidia.md) | test-authoring | active | Maintain NVIDIA GPU support architecture and update procedures. |
 | [oem-hardware-hooks](oem-hardware-hooks.md) | test-authoring | active | Add OEM hardware first-boot setup hooks safely. |
 | [onboarding](onboarding.md) | meta | active | Set up a verified dev environment for projectbluefin repos. |
-| [pr-review](pr-review/SKILL.md) | ci-ops | active | Run human-decides, agent-lands backlog review in batches of five. |
+| [pr-review](pr-review/SKILL.md) | ci-ops | active | Run human-decides, agent-lands backlog review one card at a time. |
 | [qa](qa.md) | test-authoring | active | Run and understand the projectbluefin QA test coverage model. |
 | [queue-feed](queue-feed.md) | ci-ops | active | Read and validate the Project Bluefin static pull-request queue feed. |
 | [release-promotion](release-promotion.md) | ci-ops | active | Cut releases and verify promotion/hotfix artifacts. |

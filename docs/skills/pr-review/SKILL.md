@@ -1,7 +1,7 @@
 ---
 name: pr-review
-version: "3.2"
-last_updated: "2026-08-06"
+version: "3.3"
+last_updated: "2026-08-07"
 id: pr-review
 one_line_purpose: Run human-decides, agent-lands backlog review one card at a time.
 entry_point: docs/skills/pr-review/SKILL.md
@@ -17,6 +17,8 @@ description: >-
   reviewing the PR queue or triaging the issue backlog.
 metadata:
   type: procedure
+  context7-sources:
+    - /websites/github_en_actions
 ---
 
 # Backlog Review — Human Decides, Agent Lands
@@ -32,6 +34,7 @@ approval, merge, close, and label decision. No exceptions.
 - [Issue Triage Sweep](#issue-triage-sweep)
 - [Blast Radius Map](#blast-radius-map)
 - [Merge Queue Defaults](#merge-queue-defaults)
+- [gh CLI Traps](#gh-cli-traps)
 - [Common Rationalizations](#common-rationalizations)
 - [Red Flags](#red-flags)
 - [Verification](#verification)
@@ -129,28 +132,18 @@ voted `merge`.
 
 #### CI card classification
 
-Per-check status must distinguish three failure kinds:
+Classify every red before it costs the human a slot. Full triage procedure,
+including the failing-step lookup and the infra-flake correlation check:
+[references/red-check-triage.md](references/red-check-triage.md).
 
-| Kind | Meaning | Action |
-|---|---|---|
-| **stale-red** | `validate` failure predating PR #937 merge (2026-08-07 00:41 UTC) | `gh pr update-branch <N>` to ingest the fix |
-| **fork-expected** | `Compose PR test image` red on a fork PR | Expected — the Actions token cannot push to `ghcr.io/projectbluefin/*` from fork context |
-| **bad-title** | `validate` red on the "Validate PR title (Conventional Commits)" step only | Title needs a Conventional Commits prefix. Common on bot PRs titled `[quality] ...`. Fix with `gh pr edit <N> --title "..."` — no rebase needed |
-| **real failure** | Anything else | Report to human as blocking |
+| Kind | Action |
+|---|---|
+| **stale-red** | Fix already on `main` — `gh pr update-branch <N>` |
+| **infra-flake** | HTTP 403/429/5xx or timeout — re-run, then file the fragility |
+| **fork-expected** | `Compose PR test image` on a fork — expected, not blocking |
+| **bad-title** | Retitle, then see the retitle invariant below |
+| **real failure** | Report to human as blocking |
 
-Confirm which step actually failed before classifying — `validate` is one job
-with several steps, and a title violation looks identical to a stale index in
-the rollup:
-
-```bash
-# Show the failing step names for a PR's validate job
-gh run view "$(gh pr checks <N> --json name,link \
-  --jq '.[]|select(.name=="validate")|.link' | grep -oP '(?<=runs/)\d+')" --log-failed \
-  | grep -oP '(?<=\t)[^\t]+(?=\t\d{4}-)' | sort -u
-```
-
-Card CI line example:
-`CI: validate=STALE-RED(pre-#937) · build(x86_64)=pass · test=pass`
 
 ### 2 — Verdict
 
@@ -197,8 +190,8 @@ delay the rest — so it is safe to arm several PRs across a session.
 
 ### Landing invariants
 
-Two things are easy to forget and leave the backlog inconsistent. Check both
-after every verdict that closes or parks something.
+Three things are easy to forget and leave the backlog inconsistent. Check all
+of them after every verdict that closes or parks something.
 
 **1. Queue labels are a swap, never an add.** `3-human-queue` and
 `3-clanker-queue` are mutually exclusive. Deferring to a human means removing
@@ -210,7 +203,37 @@ gh issue edit <N> --add-label 3-human-queue --remove-label 3-clanker-queue
 
 An item carrying both labels gives routing automation ambiguous input.
 
-**2. Closing a PR does not close its issue.** GitHub only auto-closes a linked
+**2. Retitling requires a fresh `pull_request` event.** `validate.yml` triggers
+on `pull_request` with **no `types:` filter**. Per GitHub's
+[events reference](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows),
+the default activity types are `opened`, `synchronize`, and `reopened` — and
+`edited` is *not* among them.
+
+Two consequences, both counter-intuitive:
+
+- Editing the title does **not** re-run the Conventional Commits check.
+- `gh run rerun --failed` does not help either. A rerun replays the **original
+  event payload**, so the job re-reads the *old* title and fails identically.
+
+Without a new commit to push, the only way to fire a qualifying event is to
+close and reopen:
+
+```bash
+gh pr edit <N> --title "test: <conventional title>"
+gh pr close <N> && sleep 3 && gh pr reopen <N>   # fires `reopened`
+```
+
+Verify the check actually re-ran against the new title rather than assuming:
+
+```bash
+gh pr view <N> --json title,statusCheckRollup \
+  --jq '{title, validate: [.statusCheckRollup[]|select(.name=="validate")|"\(.conclusion)|\(.status)"]}'
+```
+
+> A `bad-title` card is therefore never a one-command fix. Budget the reopen,
+> and expect the full check suite to re-run from scratch afterwards.
+
+**3. Closing a PR does not close its issue.** GitHub only auto-closes a linked
 issue when the PR **merges**. Closing a PR as redundant or superseded leaves
 its `Closes #NNN` issue open forever. After any close, re-check the link:
 
@@ -280,8 +303,7 @@ Same dossier → verdict → stage → land loop, with issue verdicts:
 
 > ⚠️ The ruleset is named `main-review-required-with-renovate-bypass`, but the
 > live rule requires **no** approval and **no** code-owner review. Never infer
-> approval behavior from the ruleset name — read the live parameters. Tracked
-> in issue #938.
+> approval behavior from the ruleset name — read the live parameters.
 
 Because approvals are not enforced, the human verdict in this loop is the only
 real review gate on `main`. Treat it accordingly.
@@ -352,6 +374,13 @@ gh pr create --base main --head <branch>-rebase \
 
 ---
 
+## gh CLI Traps
+
+Two shell-level traps that cost real session time:
+`--body` runs prose through the shell (use `--body-file` with a quoted
+heredoc), and non-trivial `--jq` expressions error rather than filter.
+Details: [references/red-check-triage.md](references/red-check-triage.md#gh-cli-traps).
+
 ## Common Rationalizations
 
 | Rationalization | Reality |
@@ -362,6 +391,9 @@ gh pr create --base main --head <branch>-rebase \
 | "Both PRs touch the same file, so one must be a duplicate." | Same file, different bug, is common. Compare the actual hunks and the closing-issue sets before calling it. |
 | "The doc change is small, I'll push to main and keep going." | Direct pushes bump every queued PR. Cheap to re-check, expensive to discover a week later. |
 | "The maintainer will not want to be asked about this one." | Ask. Deferring to `3-human-queue` with findings is always available; guessing their verdict is not. |
+| "The check is red, so the PR is broken." | Most reds here are environmental. A one-line digest bump cannot cause an HTTP 403. Classify the red before it costs the human a slot. |
+| "I retitled it, so the title check will pass now." | It will not. `edited` is not a trigger, and a rerun replays the stale payload. Close and reopen, then verify. |
+| "Re-running a flaky check is enough." | Re-running unblocks the PR; it leaves the flake in place for the next agent. File the fragility as an issue in the same breath. |
 
 ## Red Flags
 
@@ -376,6 +408,11 @@ gh pr create --base main --head <branch>-rebase \
 - `3-human-queue` and `3-clanker-queue` present on the same item.
 - Re-arming auto-merge because `autoMergeRequest` was `null`, without first
   probing whether the PR is already queued.
+- A PR parked or reported as blocked on a red check that was never classified.
+- A network/API traceback (`HTTPError`, timeout, 5xx) treated as a verdict on
+  the diff.
+- A title fix declared done without a close/reopen and a re-read of the check.
+- A flake re-run with no issue filed against the check that flaked.
 
 ## Verification
 
@@ -389,6 +426,9 @@ gh pr create --base main --head <branch>-rebase \
 - [ ] Competing pairs were detected and resolved before staging merges.
 - [ ] The orphaned-issue sweep was run before ending the session.
 - [ ] No item carries both queue labels.
+- [ ] Every red check presented to the human was classified, not just reported.
+- [ ] Every infra-flake re-run has a corresponding issue filed against the check.
+- [ ] Every retitled PR was closed/reopened and its check re-read as green.
 
 ### Re-derivation commands
 
@@ -408,6 +448,7 @@ gh api repos/projectbluefin/common/rulesets | jq '.[].rules[] | select(.type == 
 ## See Also
 
 - [references/card-fields.md](references/card-fields.md) — full card field reference and `mergeStateStatus` table
+- [references/red-check-triage.md](references/red-check-triage.md) — classifying red checks, infra-flake correlation, `gh` CLI traps
 - [references/worked-example.md](references/worked-example.md) — worked example session
 - [queue-feed.md](../queue-feed.md) — optional cheap first-pass source list (read-only, non-authoritative; every card fact must be verified live)
 - [human-gates.md](../human-gates.md) — the four human decision gates

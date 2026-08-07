@@ -169,6 +169,47 @@ the conflict and ask the human whether to proceed with the unaffected remainder.
 evicts a failing PR and re-tests the remaining group. A single bad PR does NOT
 delay the rest — this makes batch review worthwhile.
 
+### Landing invariants
+
+Two things are easy to forget and leave the backlog inconsistent. Check both
+after every verdict that closes or parks something.
+
+**1. Queue labels are a swap, never an add.** `3-human-queue` and
+`3-clanker-queue` are mutually exclusive. Deferring to a human means removing
+the clanker label in the same command, on the PR *and* its linked issue:
+
+```bash
+gh issue edit <N> --add-label 3-human-queue --remove-label 3-clanker-queue
+```
+
+An item carrying both labels gives routing automation ambiguous input.
+
+**2. Closing a PR does not close its issue.** GitHub only auto-closes a linked
+issue when the PR **merges**. Closing a PR as redundant or superseded leaves
+its `Closes #NNN` issue open forever. After any close, re-check the link:
+
+```bash
+gh pr view <N> --json closingIssuesReferences --jq '[.closingIssuesReferences[].number]'
+gh issue view <ISSUE> --json state --jq .state
+```
+
+Then decide explicitly:
+
+| Situation | Action |
+|---|---|
+| A sibling PR still fixes it | Leave open — it closes on that merge |
+| Fix already landed elsewhere | Close as duplicate, link the merged PR |
+| The premise was wrong | Close as `not planned` with the evidence |
+
+Sweep the whole session before finishing:
+
+```bash
+# Any issue still open whose only PR was closed unmerged?
+gh pr list --state closed --limit 30 --json number,state,closingIssuesReferences \
+  --jq '.[]|select(.state=="CLOSED")|select(.closingIssuesReferences|length>0)
+        |"PR#\(.number) -> \([.closingIssuesReferences[].number])"'
+```
+
 ---
 
 ## Issue Triage Sweep
@@ -178,7 +219,7 @@ Same dossier → verdict → stage → land loop, with issue verdicts:
 | Verdict | Effect |
 |---|---|
 | `close` | Close with the human's stated reason |
-| `label <name>` | Apply a label — only the 7 canonical labels per [label-workflow](../label-workflow.md) |
+| `label <name>` | Apply a label — only the 7 canonical labels per [label-workflow](../label-workflow.md). Queue labels swap, never stack |
 | `assign` | Assign to a user or bot |
 | `dup <#>` | Close as duplicate, link to the original |
 | `wrongrepo <repo>` | Transfer or close with redirect |

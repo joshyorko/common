@@ -256,8 +256,8 @@
         "lifecycle"
       ],
       "description": "Triagers role, CODEOWNERS sentinel pattern, cross-repo sync workflow, and branch protection matrix for projectbluefin repos. Use when managing CODEOWNERS, adding/removing triager permissions, or syncing governance policy across repos.",
-      "version": "1.0",
-      "last_updated": "2026-07-20",
+      "version": "1.1",
+      "last_updated": "2026-08-06",
       "doc_type": "reference"
     },
     {
@@ -537,8 +537,8 @@
         "dashboard"
       ],
       "description": "PR review and merge queue workflow for projectbluefin/common \u2014 ruleset, triage tiers, rebase patterns, and actions for each PR state. Use when reviewing open PRs, understanding the merge ruleset, or deciding how to handle a stalled PR.",
-      "version": "1.0",
-      "last_updated": "2026-06-23",
+      "version": "1.1",
+      "last_updated": "2026-08-06",
       "doc_type": "reference"
     },
     {

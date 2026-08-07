@@ -203,12 +203,24 @@ Same dossier → verdict → stage → land loop, with issue verdicts:
 
 ## Merge Queue Defaults
 
-The merge queue on `main` is squash-only (`grouping_strategy: ALLGREEN`).
-Required checks: `validate`, `Build and push image (x86_64)`,
-`Build and push image (aarch64)`.
+| Setting | Value |
+|---|---|
+| Merge method | Squash only (`allow_rebase_merge: false`) |
+| Grouping strategy | `ALLGREEN` ("only merge non-failing pull requests") |
+| Max entries to build | 5 |
+| Required checks | `validate`, `Build and push image (x86_64)`, `Build and push image (aarch64)` |
+| Required approvals | **0** — and no code-owner review |
 
-E2E checks are **informational** — they do not block merging. Only
-`Build and push image` is required.
+> ⚠️ The ruleset is named `main-review-required-with-renovate-bypass`, but the
+> live rule requires **no** approval and **no** code-owner review. Never infer
+> approval behavior from the ruleset name — read the live parameters. Tracked
+> in issue #938.
+
+Because approvals are not enforced, the human verdict in this loop is the only
+real review gate on `main`. Treat it accordingly.
+
+E2E checks are **informational** — they do not block merging. Only the required
+checks listed above gate a merge.
 
 Default landing command:
 

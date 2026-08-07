@@ -56,15 +56,22 @@ gh pr list --limit 5 --json number,title,author,createdAt,additions,deletions,fi
 ```
 
 **Bot-PR filtering** — Renovate, `mergeraptor`, and `kubestellar-hive` PRs
-covered by platform auto-merge waste human slots. Filter them out by default:
+covered by platform auto-merge waste human slots. Filter them out by default.
+
+> ⚠️ Fetch a WIDE window and slice to 5 *after* filtering. `--limit 5` applies
+> before the filter, so a bot-heavy window yields fewer than 5 cards.
+
+Filter on `author.is_bot` (a real boolean) rather than matching login strings —
+app authors appear as `app/kubestellar-hive`, so name regexes are brittle:
 
 ```bash
-gh pr list --limit 5 \
+# Fetch wide, drop bots, then take 5
+gh pr list --limit 60 \
   --json number,title,author,createdAt,additions,deletions,files,labels,isDraft,mergeable,mergeStateStatus,reviewDecision,statusCheckRollup,closingIssuesReferences \
-| jq '[.[] | select(.author.login | test("renovate|mergeraptor|kubestellar-hive") | not)][:5]'
+| jq '[.[] | select(.author.is_bot | not)][:5]'
 ```
 
-For a dedicated **bot sweep**, invert the filter (`| not` → remove it).
+For a dedicated **bot sweep**, invert the selector to `select(.author.is_bot)`.
 
 Present each PR as a one-screen card. See [references/card-fields.md](references/card-fields.md)
 for field definitions and the `mergeStateStatus` table.
@@ -100,7 +107,19 @@ Per-check status must distinguish three failure kinds:
 |---|---|---|
 | **stale-red** | `validate` failure predating PR #937 merge (2026-08-07 00:41 UTC) | `gh pr update-branch <N>` to ingest the fix |
 | **fork-expected** | `Compose PR test image` red on a fork PR | Expected — the Actions token cannot push to `ghcr.io/projectbluefin/*` from fork context |
+| **bad-title** | `validate` red on the "Validate PR title (Conventional Commits)" step only | Title needs a Conventional Commits prefix. Common on bot PRs titled `[quality] ...`. Fix with `gh pr edit <N> --title "..."` — no rebase needed |
 | **real failure** | Anything else | Report to human as blocking |
+
+Confirm which step actually failed before classifying — `validate` is one job
+with several steps, and a title violation looks identical to a stale index in
+the rollup:
+
+```bash
+# Show the failing step names for a PR's validate job
+gh run view "$(gh pr checks <N> --json name,link \
+  --jq '.[]|select(.name=="validate")|.link' | grep -oP '(?<=runs/)\d+')" --log-failed \
+  | grep -oP '(?<=\t)[^\t]+(?=\t\d{4}-)' | sort -u
+```
 
 Card CI line example:
 `CI: validate=STALE-RED(pre-#937) · build(x86_64)=pass · test=pass`

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-03",
+  "generated_at": "2026-08-06",
   "schema_version": "1.0",
   "skills": [
     {
@@ -492,19 +492,20 @@
     {
       "id": "pr-review",
       "name": "pr-review",
-      "one_line_purpose": "Review PRs against common's CI gates and report template.",
+      "one_line_purpose": "Run human-decides, agent-lands backlog review in batches of five.",
       "entry_point": "docs/skills/pr-review.md",
       "category": "ci-ops",
       "status": "active",
       "tags": [
         "review",
-        "testing",
-        "contributing"
+        "merge",
+        "triage",
+        "backlog"
       ],
-      "description": "PR reviewer's guide for projectbluefin/common. Use when reviewing PRs, interpreting CI gates, or following the review report template.",
-      "version": "2.0",
-      "last_updated": "2026-06-24",
-      "doc_type": "reference"
+      "description": "Human-decides, agent-lands PR and issue backlog review. Assemble a 5-item dossier, collect per-item human verdicts, stage gh commands, land on confirm. Use when reviewing the PR queue or triaging the issue backlog.",
+      "version": "3.0",
+      "last_updated": "2026-08-06",
+      "doc_type": "procedure"
     },
     {
       "id": "qa",

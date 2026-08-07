@@ -1,6 +1,6 @@
 ---
 name: pr-review
-version: "3.3"
+version: "3.4"
 last_updated: "2026-08-07"
 id: pr-review
 one_line_purpose: Run human-decides, agent-lands backlog review one card at a time.
@@ -143,6 +143,26 @@ including the failing-step lookup and the infra-flake correlation check:
 | **fork-expected** | `Compose PR test image` on a fork — expected, not blocking |
 | **bad-title** | Retitle, then see the retitle invariant below |
 | **real failure** | Report to human as blocking |
+
+#### Dismissed-approval regression check (mandatory)
+
+A `DISMISSED` review is not merely a stale approval to be re-collected. The
+dismissal exists **because the head moved**, and the commits that moved it can
+undo the very thing the reviewer approved — while every check stays green.
+
+Never re-approve on the strength of a prior approval. Diff the current head
+against the approved commit, then read the dismissed reviewer's concerns as a
+checklist against that head:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/<N>/reviews \
+  --jq '.[] | select(.state == "APPROVED" or .state == "DISMISSED")
+        | {user: .user.login, state: .state, sha: .commit_id}'
+git diff <approved_sha>...<current_head>
+```
+
+Full procedure and the table of regressions CI cannot see:
+[references/dismissed-approval.md](references/dismissed-approval.md).
 
 
 ### 2 — Verdict
@@ -393,7 +413,10 @@ Details: [references/red-check-triage.md](references/red-check-triage.md#gh-cli-
 | "The maintainer will not want to be asked about this one." | Ask. Deferring to `3-human-queue` with findings is always available; guessing their verdict is not. |
 | "The check is red, so the PR is broken." | Most reds here are environmental. A one-line digest bump cannot cause an HTTP 403. Classify the red before it costs the human a slot. |
 | "I retitled it, so the title check will pass now." | It will not. `edited` is not a trigger, and a rerun replays the stale payload. Close and reopen, then verify. |
-| "Re-running a flaky check is enough." | Re-running unblocks the PR; it leaves the flake in place for the next agent. File the fragility as an issue in the same breath. |
+| "A flake re-run with no issue filed" is fine. | Re-running unblocks the PR; it leaves the flake in place for the next agent. File the fragility as an issue in the same breath. |
+| "It was approved before, so I just need a fresh rubber-stamp." | The approval was dismissed because the head moved. Those commits can revert what the reviewer approved — and still pass CI. Diff against the approved SHA. |
+| "The reviewer already confirmed that concern was fixed." | They confirmed it against a head that no longer exists. Re-verify every resolved concern against the current head. |
+| "The value is correct, so the pin is fine." | A mutable tag that resolves to the right commit today is still mutable. Correct-now is not the same as pinned. |
 
 ## Red Flags
 
@@ -413,6 +436,11 @@ Details: [references/red-check-triage.md](references/red-check-triage.md#gh-cli-
   the diff.
 - A title fix declared done without a close/reopen and a re-read of the check.
 - A flake re-run with no issue filed against the check that flaked.
+- A PR with a `DISMISSED` approval re-reviewed without diffing the current head
+  against the commit that was approved.
+- A previously-fixed concern assumed still fixed because a reviewer once said so.
+- A dependency, action, or source checkout pinned to a tag or branch rather than
+  a digest or commit SHA.
 
 ## Verification
 
@@ -429,6 +457,13 @@ Details: [references/red-check-triage.md](references/red-check-triage.md#gh-cli-
 - [ ] Every red check presented to the human was classified, not just reported.
 - [ ] Every infra-flake re-run has a corresponding issue filed against the check.
 - [ ] Every retitled PR was closed/reopened and its check re-read as green.
+- [ ] Every PR carrying a `DISMISSED` review was diffed from the approved SHA to
+      the current head, and each concern the reviewer marked resolved was
+      re-verified against that head.
+- [ ] Any third-party config keys, enum values, or state paths the diff ships
+      were checked against the upstream project's own docs or source — a
+      plausible-looking key passes lint and CI and still renders as the raw
+      identifier to users.
 
 ### Re-derivation commands
 

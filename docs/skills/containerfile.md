@@ -84,6 +84,16 @@ When updating either version: find the target commit SHA on
 git tags are mutable and bypass the immutable pin, even when the tag currently
 points at the commit you want.
 
+Resolve a release tag to the SHA to pin:
+
+```bash
+gh api repos/projectbluefin/uwelcome/git/refs/tags/v0.3.4 -q '.object.sha'
+```
+
+A tag-for-SHA swap is invisible to CI — the image still builds, because the tag
+resolves to a real commit. Nothing but review catches it, so treat any
+`checkout tags/...` or `--branch` in a diff as a blocking finding.
+
 **Config split.** The two binaries read separate config files, both shipped from
 `system_files/shared/`:
 

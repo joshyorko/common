@@ -102,7 +102,7 @@ The Containerfile pulls wallpaper artwork from `ghcr.io/ublue-os/bluefin-wallpap
 ## CountMe telemetry reporting
 
 Our images participate in Fedora's weekly CountMe telemetry to track installation statistics anonymously:
-- **Bluefin & Bluefin LTS:** Handled by standard repository configuration, and since CentOS-based bootc images are broken with legacy rpm-ostree countme, they use a dnf5-based helper service.
+- **Bluefin & Bluefin LTS:** Handled by standard repository configuration, and since CentOS-based bootc images are broken with legacy rpm-ostree countme, Bluefin LTS uses a dnf-based helper service (`bluefin-lts-countme.service` running `dnf makecache`; dnf5 is unpackaged on CS10/EPEL10 and the dnf CLI is unaffected by the libdnf4 metalink-expansion bug).
 - **Dakota:** Since it is based on GNOME OS and has no standard rpm-ostree/dnf packages, it utilizes a custom weekly systemd service/timer (`bluefin-countme.timer` triggering `/usr/libexec/dakota-countme`).
   - It generates and maintains an installation epoch cookie in `/var/lib/dakota-countme-epoch` to mimic Fedora's week-based age buckets.
   - It performs a weekly query to Fedora's metalink using a `libdnf5`-format User Agent with `os_name="Dakota"` (e.g. `libdnf5/5.2.9 (Dakota;${VERSION_ID};${ARCH}) hawkey`).

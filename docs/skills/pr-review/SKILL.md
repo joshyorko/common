@@ -43,6 +43,41 @@ approval, merge, close, and label decision. No exceptions.
 
 The loop: **dossier → verdict → land.**
 
+### 0 — Sources (queue sweep)
+
+For "let's review <repo> PRs" the agent assembles the list from three
+sources, in this order:
+
+1. **Queue feed** (cheap first pass, non-authoritative):
+
+   ```bash
+   curl --fail --silent --show-error --location --max-time 20 \
+     https://projectbluefin.github.io/review/queue.json |
+     jq -r '.items[] | select(.repository == "projectbluefin/<repo>") |
+       [.recommended_action, .number, .title] | @tsv'
+   ```
+
+   `ready-for-human-merge` items go first. Verify every fact live — the feed
+   is a snapshot, not authority. See [queue-feed.md](../queue-feed.md).
+
+2. **Auto-merge-armed scan** — PRs a human already queued with
+   `gh pr merge --auto` (or the Hive sweep label):
+
+   ```bash
+   gh pr list --repo projectbluefin/<repo> \
+     --json number,title,autoMergeRequest \
+     --jq '.[] | select(.autoMergeRequest != null) | "\(.number)\t\(.title)"'
+   gh pr list --repo projectbluefin/<repo> --label lgtm \
+     --json number,title,mergeStateStatus
+   ```
+
+   Armed/labelled PRs still show up in the review queue: the human verdict is
+   the only real gate (required approvals are 0 — see
+   [references/merge-queue.md](references/merge-queue.md)). For the Hive
+   sweep contract, see [hive-automerge.md](../hive-automerge.md).
+
+3. **Live GitHub state** — the dossier fetch below is the authority.
+
 ### Cadence: stream, don't batch
 
 Default to **streaming**: present one card, take the verdict, execute it
@@ -83,13 +118,14 @@ commit SHA. Full procedure: [references/dismissed-approval.md](references/dismis
 Prompt the human **per PR, one at a time**:
 
 ```bash
-gum choose "merge" "close" "defer" "rebase" "changes" "open" "skip" \
+gum choose "merge" "queue" "close" "defer" "rebase" "changes" "open" "skip" \
   --header "PR #${N} — ${TITLE}"
 ```
 
 | Verdict | Effect |
 |---|---|
 | `merge` | Squash-merge via merge queue |
+| `queue` | Hive auto-merge: audit approval + `lgtm` label (others' PRs only — see [hive-automerge.md](../hive-automerge.md)) |
 | `close` | Close with the human's stated reason |
 | `defer` | Leave open, move to next |
 | `rebase` | Update branch, re-present later |
@@ -122,6 +158,8 @@ queue state reading, branch update, and fork PR rebase.
 
 - Agent states an opinion on whether a PR should be merged.
 - Agent approves, merges, closes, or labels without an explicit human verdict.
+- `queue` verdict applied to the human's own PR (Hive self-merge ban).
+- `lgtm` added without the exact audit approval body — the sweep skips it.
 - `--admin` merge used without explicit human instruction.
 - `--delete-branch` used (hard-fails with merge queue).
 - `system_files/shared/` change treated as trivial or fast-laned.
@@ -168,6 +206,7 @@ queue state reading, branch update, and fork PR rebase.
 ## See Also
 
 - [queue-feed.md](../queue-feed.md) — optional cheap first-pass source list (non-authoritative; verify every fact live)
+- [hive-automerge.md](../hive-automerge.md) — Hive "Queue auto merge" sweep contract (`lgtm` label + audit approval)
 - [human-gates.md](../human-gates.md) — the four human decision gates
 - [label-workflow.md](../label-workflow.md) — canonical label lifecycle
 - [governance.md](../governance.md) — branch protection and ownership

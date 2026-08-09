@@ -295,6 +295,24 @@
       "doc_type": "reference"
     },
     {
+      "id": "hive-automerge",
+      "name": "hive-automerge",
+      "one_line_purpose": "Queue reviewed PRs for Hive's auto-merge-on-green sweep.",
+      "entry_point": "docs/skills/hive-automerge.md",
+      "category": "ci-ops",
+      "status": "active",
+      "tags": [
+        "hive",
+        "automerge",
+        "lgtm",
+        "merge-queue"
+      ],
+      "description": "The Hive \"Queue auto merge\" feature: merger-tier queue action applying the `lgtm` label plus an audit approval; a per-minute sweep squash-merges labelled PRs once CI is green. Use when queuing a reviewed PR or listing what the sweep will merge.",
+      "version": "1.0",
+      "last_updated": "2026-08-08",
+      "doc_type": "reference"
+    },
+    {
       "id": "hive-review",
       "name": "hive-review",
       "one_line_purpose": "Review live Hive and GitHub state for actionable work.",
@@ -538,8 +556,8 @@
         "redirects"
       ],
       "description": "Reads the Project Bluefin static pull-request queue as validated JSON. Use when inspecting queue.projectbluefin.io, filtering its queue items, or verifying its root redirect targets queue.json.",
-      "version": "1.0",
-      "last_updated": "2026-08-03",
+      "version": "1.1",
+      "last_updated": "2026-08-08",
       "doc_type": "procedure"
     },
     {

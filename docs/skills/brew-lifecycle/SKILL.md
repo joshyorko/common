@@ -1,7 +1,7 @@
 ---
 name: brew-lifecycle
-version: "1.2"
-last_updated: "2026-08-09"
+version: "1.3"
+last_updated: "2026-08-10"
 id: brew-lifecycle
 one_line_purpose: Manage OS-managed Homebrew packages and RPM/brew placement.
 entry_point: docs/skills/brew-lifecycle/SKILL.md
@@ -35,6 +35,7 @@ pattern, and the rules for what can and cannot move to brew.
 - Adding or removing a package from `preinstall.d/system-cli.Brewfile`
 - Moving a self-contained CLI tool off the RPM image and into brew
 - Adding or removing a tap (`trusted: true` requirements, Brewfile syntax)
+- Pinning architecture-specific checksums for a Linux cask
 - Debugging a failed or skipped `brew-preinstall.service`
 - Deciding whether a new tool belongs on the image or in a Brewfile
 - Auditing image diet (removing dead-weight packages from bluefin/lts/dakota)
@@ -139,6 +140,7 @@ not `system_files/bluefin/preinstall.d/`. See [package-set.md](references/packag
 - Suggesting `rpm-ostree install` for any missing tool — this is never correct on Bluefin
 - Adding a package to `preinstall.d/` that has a udev rule, kernel module, D-Bus system service, FUSE driver, firmware, or PAM dependency — it must stay as an RPM
 - Adding a tap without `trusted: true` / `--trust` (Homebrew 6.0 blocks untrusted taps silently)
+- Using `arm:` / `intel:` checksum keys for a Linux cask — those keys are macOS-only and resolve to no checksum on Linux
 - Adding unknown keys to `/usr/share/chairlift/config.yml` — ChairLift disables
   the whole application on unknown page, group, or field names
 - Writing `/etc/chairlift/config.yml` from image content or setup code; that
@@ -154,6 +156,7 @@ After any change to `preinstall.d/` or `brew-preinstall`:
 
 - [ ] Package obeys the "can move to brew" rule: self-contained CLI, no system-level deps
 - [ ] If adding a tap: `trusted: true` in the Brewfile line (Homebrew 6.0)
+- [ ] Linux casks use `arm64_linux:` / `x86_64_linux:` checksum keys
 - [ ] If adding a cask: it is recorded under `.casks` and removal uses `brew uninstall --cask`
 - [ ] If touching ChairLift: `python3 tests/check-chairlift-config` passes (networked; not part of `just check`)
 - [ ] If bumping the ChairLift cask: `CHAIRLIFT_SCHEMA_REF` in `tests/check-chairlift-config` and the vendored desktop file/icons move in the same change

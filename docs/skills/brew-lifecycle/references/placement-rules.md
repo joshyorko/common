@@ -86,6 +86,25 @@ Ref: https://brew.sh/2026/06/11/homebrew-6.0.0/
 
 ---
 
+## Linux cask checksum keys
+
+Architecture-specific cask checksums are OS-specific. For Linux artifacts,
+use Homebrew's Linux keys:
+
+```ruby
+sha256 arm64_linux:  "<arm64-sha256>",
+       x86_64_linux: "<amd64-sha256>"
+```
+
+Do not use `arm:` / `intel:` for a Linux-only cask. Those keys select macOS
+checksums, leaving `sha256` unset when Homebrew simulates Linux. `brew readall`
+then reports `Missing Linux stanzas can leave Linux sha256 as nil`, and
+`brew audit` reports that a checksum is required.
+
+Source: Homebrew Cask DSL (`/homebrew/brew`).
+
+---
+
 ## Starship shell initialization
 
 Starship is installed via `preinstall.d/system-cli.Brewfile` (not baked

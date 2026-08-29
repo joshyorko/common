@@ -131,6 +131,21 @@ EOF
     [ ! -e "${TAR_LOG}" ]
 }
 
+@test "runsc helper rejects unexpected archive members" {
+    [[ -x "${HELPER}" ]]
+    printf 'unexpected payload\n' > "${TEST_ROOT}/archive/unexpected"
+    tar -cjf "${FIXTURE_ARCHIVE}" \
+        -C "${TEST_ROOT}/archive" runsc gvisor-bin containerd-shim-runsc-v1 unexpected
+    VALID_SHA="$(sha256sum "${FIXTURE_ARCHIVE}" | awk '{print $1}')"
+    patch_helper
+
+    run bash "${PATCHED_HELPER}" install
+
+    [ "${status}" -ne 0 ]
+    [[ "${output}" == *"unexpected member"* ]]
+    [ ! -e "${TEST_ROOT}/usr/local/bin/runsc" ]
+}
+
 @test "runsc helper install is idempotent after the pinned release is active" {
     [[ -x "${HELPER}" ]]
     patch_helper

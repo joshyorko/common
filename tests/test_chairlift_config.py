@@ -79,19 +79,15 @@ FORBIDDEN_BOOTC_FLAGS = (
 # lives in .github/workflows/validate-chairlift-config.yaml, which fetches
 # upstream's config.yml and fails on drift.
 KNOWN_GROUPS = {
-    "system_page": {
-        "system_info_group",
-        "bootc_status_group",
-        "health_group",
-        "channel_group",
-    },
+    "agents_page": {"agents_group"},
     "updates_page": {
-        "update_all_group",
+        "automatic_updates_group",
         "bootc_updates_group",
-        "sysupdate_updates_group",
         "flatpak_updates_group",
         "brew_updates_group",
         "brew_trust_group",
+        "channel_group",
+        "bootc_status_group",
     },
     "applications_page": {
         "applications_installed_group",
@@ -103,19 +99,17 @@ KNOWN_GROUPS = {
     },
     "maintenance_page": {
         "maintenance_cleanup_group",
-        "maintenance_brew_group",
-        "maintenance_flatpak_group",
-        "maintenance_optimization_group",
+        "maintenance_freespace_group",
         "reset_group",
     },
-    "features_page": {
-        "features_group",
-        "dx_group",
-        "gaming_group",
-        "ai_group",
-        "troubleshooting_group",
+    "features_page": {"features_group", "dx_group", "gaming_group"},
+    "livery_page": {
+        "account_group",
+        "livery_app_grid_group",
+        "livery_foundation_group",
+        "livery_dock_group",
     },
-    "help_page": {"help_resources_group"},
+    "help_page": {"troubleshooting_group", "help_resources_group"},
 }
 
 # Group field names, mirrored from upstream GroupConfig's yaml struct tags.
@@ -165,8 +159,10 @@ def test_bootc_staging_enabled_now_that_polkit_glue_ships():
 
 
 def test_updex_features_group_stays_disabled():
-    """updex has no Bluefin helper yet, independent of the bootc polkit
-    fix. Keep it off until updex actually ships on Bluefin."""
+    """Upstream's features_group is the updex-managed feature set (it
+    requires the `updex` command), and no updex helper ships on Bluefin —
+    independent of the bootc polkit fix. Keep it off until updex actually
+    ships on Bluefin."""
     data = _load_config()
     assert data["features_page"]["features_group"]["enabled"] is False
 
@@ -332,8 +328,8 @@ def test_schema_validator_pins_the_shipped_chairlift_release():
     validator = CHAIRLIFT_VALIDATOR.read_text(encoding="utf-8")
 
     refs = re.findall(r'^CHAIRLIFT_SCHEMA_REF = "([^"]+)"$', validator, re.MULTILINE)
-    assert refs == ["v0.12.2"], (
-        f"expected exactly one CHAIRLIFT_SCHEMA_REF pinned to v0.12.2, got {refs}"
+    assert refs == ["v26.09.0-alpha.2"], (
+        f"expected exactly one CHAIRLIFT_SCHEMA_REF pinned to v26.09.0-alpha.2, got {refs}"
     )
 
     urls = re.findall(r"https://raw\.githubusercontent\.com/projectbluefin/chairlift/\S*", validator)
@@ -342,6 +338,29 @@ def test_schema_validator_pins_the_shipped_chairlift_release():
         f"upstream URLs bypass the pin: {unpinned}; build every URL from "
         "CHAIRLIFT_SCHEMA_REF so the cask bump moves them together"
     )
+
+
+def test_chairlift_schemas_are_staged_and_compiled_for_composed_images():
+    containerfile = (ROOT / "Containerfile").read_text(encoding="utf-8")
+    release = "v26.09.0-alpha.2"
+    archive_sha256 = "18f630bb7de0e921ba12ae8c0650adf5e550b0cde203938d73d534382f196d08"
+    schema_names = (
+        "io.projectbluefin.chairlift.livery.gschema.xml",
+        "io.projectbluefin.chairlift.updates.gschema.xml",
+        "io.projectbluefin.chairlift.firstrun.gschema.xml",
+    )
+
+    assert f"ARG CHAIRLIFT_RELEASE={release}" in containerfile
+    assert archive_sha256 in containerfile
+    assert "/out/shared/usr/share/glib-2.0/schemas/" in containerfile
+    for name in schema_names:
+        assert f"data/{name}" in containerfile
+        assert name in containerfile
+
+    compose_workflow = (ROOT / ".github/workflows/pr-e2e.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "glib-compile-schemas /usr/share/glib-2.0/schemas" in compose_workflow
 
 
 def test_schema_validator_sends_no_credentials():
@@ -514,9 +533,8 @@ def test_chairlift_drift_workflow_documents_the_pin():
 
 def test_update_scheduling_is_not_expressed_as_a_config_group():
     """Bluefin's update policy belongs to uupd, but that intent must not be
-    encoded as a made-up group. The only legitimate groups are the ones
-    upstream defines (mirrored in KNOWN_GROUPS); anything settings-shaped
-    here is an invention that would fail strict validation."""
+    encoded as a made-up group. Any setting-shaped key absent from the pinned
+    upstream schema would fail strict validation."""
     updates = _load_config()["updates_page"]
     invented = {name for name in updates if "setting" in name or "schedul" in name}
     assert not invented, (
